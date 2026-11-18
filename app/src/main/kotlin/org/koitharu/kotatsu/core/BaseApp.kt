@@ -37,7 +37,9 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.settings.work.WorkScheduleManager
 import java.security.Security
 import javax.inject.Inject
+import com.google.firebase.messaging.FirebaseMessaging
 import javax.inject.Provider
+import org.koitharu.kotatsu.cloud.RemoteConfigManager
 
 @HiltAndroidApp
 open class BaseApp : Application(), Configuration.Provider {
@@ -86,6 +88,13 @@ open class BaseApp : Application(), Configuration.Provider {
 		PlatformRegistry.applicationContext = this // TODO replace with OkHttp.initialize
 		if (ACRA.isACRASenderServiceProcess()) {
 			return
+		}
+		// Manga Epic: Firebase Remote Config (in-app defaults + background fetch) and the FCM token.
+		RemoteConfigManager.init()
+		FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+			if (task.isSuccessful) {
+				settings.fcmToken = task.result
+			}
 		}
 		// Before anything gets to ask which sources there are: the answer is in the parsers kept from the last run
 		parsersUpdater.start(this)
