@@ -147,6 +147,11 @@ class MainNavigationDelegate(
 		setCounter(item.id, counter)
 	}
 
+	/** Manga Epic: switch to a tab programmatically, even if it is not on the bar. */
+	fun openItem(@IdRes itemId: Int) {
+		onNavigationItemSelected(itemId)
+	}
+
 	fun syncSelectedItem() {
 		val fragment = primaryFragment ?: return
 		onFragmentChanged(fragment, fromUser = false)
