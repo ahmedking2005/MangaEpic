@@ -14,6 +14,7 @@ enum class ColorScheme(
 ) {
 
 	DEFAULT(R.style.ThemeOverlay_Kotatsu_Totoro, R.string.theme_name_totoro),
+	EPIC(R.style.ThemeOverlay_Kotatsu_Epic, R.string.theme_name_epic),
 	MONET(R.style.ThemeOverlay_Kotatsu_Monet, R.string.theme_name_dynamic),
 	EXPRESSIVE(R.style.ThemeOverlay_Kotatsu_Expressive, R.string.theme_name_expressive),
 	MIKU(R.style.ThemeOverlay_Kotatsu_Miku, R.string.theme_name_miku),
@@ -28,12 +29,9 @@ enum class ColorScheme(
 
 	companion object {
 
+		/** Manga Epic: the custom dark-purple "Epic" scheme is the default, matching the app logo. */
 		val default: ColorScheme
-			get() = if (DynamicColors.isDynamicColorAvailable()) {
-				MONET
-			} else {
-				DEFAULT
-			}
+			get() = EPIC
 
 		fun getAvailableList(): List<ColorScheme> {
 			val list = ColorScheme.entries.toMutableList()
