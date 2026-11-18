@@ -56,6 +56,7 @@ import org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupService
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.VoiceInputContract
+import org.koitharu.kotatsu.cloud.LibrarySync
 import org.koitharu.kotatsu.cloud.RemoteConfigManager
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.NavItem
@@ -122,6 +123,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	@Inject
 	lateinit var settings: AppSettings
 
+	@Inject
+	lateinit var librarySync: LibrarySync
+
 	private val viewModel by viewModels<MainViewModel>()
 	private val searchSuggestionViewModel by viewModels<SearchSuggestionViewModel>()
 
@@ -160,6 +164,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		// Manga Epic: remote gates (maintenance / forced update / announcement) from Firebase Remote Config.
 		checkRemoteConfigGates()
 		RemoteConfigManager.refresh { checkRemoteConfigGates() }
+		// Manga Epic: background library sync for signed-in users (batched, local-first).
+		if (savedInstanceState == null) {
+			lifecycleScope.launch { runCatching { librarySync.syncAll() } }
+		}
 		// What the floating bar covers reaches the lists as part of the bottom inset. See updateContainerBottomMargin
 		ViewCompat.setOnApplyWindowInsetsListener(viewBinding.container) { _, insets -> insets.withFloatingNavCover() }
 
