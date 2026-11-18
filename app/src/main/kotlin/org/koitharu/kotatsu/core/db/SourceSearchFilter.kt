@@ -21,11 +21,11 @@ internal fun sourceNamesFor(query: String): List<String> {
 	if (q.length < MIN_QUERY_LENGTH) {
 		return emptyList()
 	}
-	val exact = ActiveParsers.sources.filter { it.title.equals(q, ignoreCase = true) }
+	val exact = ActiveParsers.workingSources.filter { it.title.equals(q, ignoreCase = true) }
 	if (exact.isNotEmpty()) {
 		return exact.map { it.name }
 	}
-	return ActiveParsers.sources
+	return ActiveParsers.workingSources
 		.filter { it.title.contains(q, ignoreCase = true) }
 		.take(MAX_SOURCES)
 		.map { it.name }
