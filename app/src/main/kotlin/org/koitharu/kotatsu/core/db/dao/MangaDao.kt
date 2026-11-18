@@ -25,6 +25,9 @@ abstract class MangaDao {
 	abstract suspend operator fun contains(id: Long): Boolean
 
 	@Transaction
+	@Query("SELECT * FROM manga WHERE source = :source AND url = :url LIMIT 1")
+	abstract suspend fun findBySourceAndUrl(source: String, url: String): MangaEntity?
+
 	@Query("SELECT * FROM manga WHERE public_url = :publicUrl")
 	abstract suspend fun findByPublicUrl(publicUrl: String): MangaWithTags?
 
