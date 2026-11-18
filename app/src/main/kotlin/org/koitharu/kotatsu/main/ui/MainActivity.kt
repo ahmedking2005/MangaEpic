@@ -181,7 +181,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		// The community features introduce themselves once, on the first launch that reaches the main
 		// screen. Nothing is created before the user answers: the identity is generated lazily, so
 		// declining means no request is ever made and no row exists anywhere.
-		CommunityOnboardingDialog.showIfNeeded(this, communitySettings, supportFragmentManager)
+		// Manga Epic: the upstream community intro dialog is never shown; first-run setup
+		// happens in the onboarding wizard instead (restore, profile, colour scheme).
 		// Idempotent, and reads the toggles - so it also cancels the job when the feature is off.
 		sourceScoreSyncScheduler.schedule()
 		// Polled while the app is open rather than pushed: push would mean a device token and a third
@@ -216,6 +217,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			router.openDownloads()
 		}
 
+
 		viewModel.onOpenReader.observeEvent(this, this::onOpenReader)
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.container, null))
 		viewModel.isLoading.observe(this, this::onLoadingStateChanged)
@@ -240,6 +242,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			if (donationReminder.takeIfDue()) {
 				withResumed { DonationReminderDialog.show(supportFragmentManager) }
 			}
+		}
+	}
+
+	/** Manga Epic: open the Profile tab (used by the Latest Updates top-bar action). */
+	fun openProfile() {
+		navigationDelegate.openItem(R.id.nav_profile)
+		val inBar = bottomNav?.menu?.findItem(R.id.nav_profile) != null ||
+			viewBinding.navRail?.menu?.findItem(R.id.nav_profile) != null
+		if (inBar) {
+			navigationDelegate.syncSelectedItem()
 		}
 	}
 
