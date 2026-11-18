@@ -1230,4 +1230,8 @@
 	<string name="account_signed_out_hint">انت مش مسجّل دخولك. مكتبتك محفوظة على الجهاز ده بس.</string>
 	<string name="account_sign_out">تسجيل الخروج</string>
 	<string name="account_sign_out_confirm">تسجّل خروجك من حسابك؟ مكتبتك المحلية هتفضل على الجهاز ده.</string>
+	<string name="account_sync_never">لسه متزامنتش — دوس للمزامنة</string>
+	<string name="account_syncing">بيزامن…</string>
+	<string name="account_last_sync">آخر مزامنة: %1$s — دوس للمزامنة تاني</string>
+	<string name="account_sync_failed">المزامنة فشلت — دوس للمحاولة تاني</string>
 </resources>
