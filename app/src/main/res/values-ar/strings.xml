@@ -372,6 +372,11 @@
     <string name="source_disabled">تم تعطيل المصدر</string>
     <string name="theme_name_rikka">ريكا</string>
     <string name="theme_name_epic">إبيك</string>
+    <string name="onboarding_welcome_title">مرحبًا بك في مانجا إبيك</string>
+    <string name="onboarding_restore_text">عندك ملف نسخة احتياطية من قبل؟ استعد مكتبتك والمفضلات والسجل والإعدادات الآن. أو ابدأ من جديد — وتقدر تستعيد نسخة في أي وقت من الإعدادات.</string>
+    <string name="onboarding_start_fresh">أبدأ من جديد</string>
+    <string name="onboarding_finish">ابدأ القراءة</string>
+    <string name="onboarding_step">الخطوة %1$d من %2$d</string>
     <string name="theme_name_sakura">ساكورا</string>
     <string name="pause">إيقاف مؤقت</string>
     <string name="show_on_shelf">العرض في الرف</string>
