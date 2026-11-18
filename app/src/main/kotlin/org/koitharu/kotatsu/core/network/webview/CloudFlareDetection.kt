@@ -21,7 +21,13 @@ internal const val CF_STATE_JS = """
 			if (t.indexOf('attention required') !== -1 || t.indexOf('access denied') !== -1) return 'error';
 			if (t.indexOf('just a moment') !== -1 || t.indexOf('un instant') !== -1 ||
 				t.indexOf('einen moment') !== -1 || t.indexOf('un momento') !== -1 ||
-				t.indexOf('один момент') !== -1) return 'wait';
+				t.indexOf('один момент') !== -1 || t.indexOf('لحظة') !== -1) return 'wait';
+			if (typeof window._cf_chl_opt !== 'undefined') return 'wait';
+			var cfAssets = document.querySelectorAll(
+				'iframe[src*="challenges.cloudflare.com"], script[src*="challenges.cloudflare.com"], ' +
+				'#challenge-form, .cf-turnstile'
+			);
+			if (cfAssets.length > 0) return 'wait';
 			var challengeNodes = document.querySelectorAll(
 				'#challenge-running, #challenge-stage, #cf-challenge-running, ' +
 				'.cf-browser-verification, #turnstile-wrapper, #cf-please-wait'
