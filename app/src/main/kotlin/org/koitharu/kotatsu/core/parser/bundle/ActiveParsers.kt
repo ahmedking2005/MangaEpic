@@ -123,8 +123,16 @@ object ActiveParsers {
 		val number: Int,
 	) {
 
+		/**
+		 * Fork customization (Arabic edition): only Arabic sources are offered, and the broken ones are
+		 * excluded as before. Every other locale — including the multi-language sources, whose locale is
+		 * blank — is dropped here, at the one place every source list in the app is derived from, so a
+		 * downloaded parsers bundle cannot bring them back either.
+		 */
 		val working: Set<ParserMangaSource> by lazy(LazyThreadSafetyMode.PUBLICATION) {
-			Collections.unmodifiableSet(bundle.sources.filterNotTo(LinkedHashSet()) { it.isBroken })
+			Collections.unmodifiableSet(
+				bundle.sources.filterNotTo(LinkedHashSet()) { it.isBroken || it.locale != "ar" },
+			)
 		}
 	}
 }
