@@ -147,4 +147,18 @@
 		<item>@string/ask_every_time</item>
 		<item>@string/disable</item>
 	</string-array>
+	<string-array name="start_pages" translatable="false">
+		<item>@string/downloads</item>
+		<item>@string/latest_updates</item>
+		<item>@string/favourites</item>
+		<item>@string/explore</item>
+		<item>@string/profile</item>
+	</string-array>
+	<string-array name="values_start_page" translatable="false">
+		<item>DOWNLOADS</item>
+		<item>LATEST</item>
+		<item>FAVORITES</item>
+		<item>EXPLORE</item>
+		<item>PROFILE</item>
+	</string-array>
 </resources>
