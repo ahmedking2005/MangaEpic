@@ -451,6 +451,8 @@
     <string name="download_option_all_unread">جميع الفصول غير المقروءة</string>
     <string name="manage_categories">إدارة القوائم</string>
     <string name="advanced">مُتقدم</string>
+    <string name="advanced_settings">إعدادات متقدمة</string>
+    <string name="advanced_settings_summary">إظهار الخيارات المتقدمة مثل الحسابات والمزامنة والمتتبعات والبروكسي وDNS</string>
     <string name="catalog">القائمة</string>
     <string name="source_enabled">تم تفعيل المصدر</string>
     <string name="sources_catalog">قائمة المصادر</string>
