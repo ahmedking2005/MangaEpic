@@ -133,6 +133,10 @@ class CaptchaAutoResolveCoordinator @Inject constructor(
 
 	/** Resolves [exception] only when automatic solving is enabled for its source. */
 	suspend fun resolveIfEnabled(exception: CloudFlareProtectedException): Boolean {
+		// Manga Epic: automatic captcha solving is removed at the owner's request (2026-11-18).
+		// Cloudflare detects the hidden solver as non-human, so it never actually worked; every
+		// caller of this method falls back to the manual "Solve" flow instead.
+		if (true) return false
 		if (SourceSettings(context, exception.source).isCaptchaAutoResolveDisabled) return false
 		val now = System.currentTimeMillis()
 		val lastSuccess = recentSuccessAt[exception.source]
