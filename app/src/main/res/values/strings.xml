@@ -390,6 +390,11 @@
     <string name="theme_name_mion">Mion</string>
     <string name="theme_name_rikka">Rikka</string>
     <string name="theme_name_epic">Epic</string>
+    <string name="onboarding_welcome_title">Welcome to Manga Epic</string>
+    <string name="onboarding_restore_text">Have a backup file from before? Restore your library, favourites, history and settings now. Or start fresh — you can always restore a backup later from Settings.</string>
+    <string name="onboarding_start_fresh">Start fresh</string>
+    <string name="onboarding_finish">Start reading</string>
+    <string name="onboarding_step">Step %1$d of %2$d</string>
     <string name="theme_name_sakura">Sakura</string>
     <string name="theme_name_mamimi">Mamimi</string>
     <string name="theme_name_kanade">Kanade</string>
