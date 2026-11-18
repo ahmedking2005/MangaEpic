@@ -138,6 +138,10 @@ abstract class HistoryDao : MangaQueryBuilder.ConditionCallback {
 	@Query("SELECT COUNT(*) FROM history WHERE deleted_at = 0")
 	abstract suspend fun getCount(): Int
 
+	/** Manga Epic (profile): chapters read across all manga in history. */
+	@Query("SELECT IFNULL(SUM(chapters),0) FROM history WHERE deleted_at = 0")
+	abstract suspend fun getTotalChaptersRead(): Int
+
 	@Query("SELECT percent FROM history WHERE manga_id = :id AND deleted_at = 0")
 	abstract suspend fun findProgress(id: Long): Float?
 
