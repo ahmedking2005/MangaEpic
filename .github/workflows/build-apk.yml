@@ -1,4 +1,4 @@
-name: Build APK (Arabic edition)
+name: Build APK (Manga Epic)
 
 on:
   workflow_dispatch:
@@ -51,22 +51,22 @@ jobs:
           "$BUILD_TOOLS/apksigner" sign \
             --ks "$RUNNER_TEMP/release.keystore" \
             --ks-pass pass:android --key-pass pass:android \
-            --out "$RUNNER_TEMP/Kotatsu-Arabic.apk" "$RUNNER_TEMP/aligned.apk"
-          "$BUILD_TOOLS/apksigner" verify --print-certs "$RUNNER_TEMP/Kotatsu-Arabic.apk"
-          cp "$RUNNER_TEMP/Kotatsu-Arabic.apk" ./Kotatsu-Arabic.apk
+            --out "$RUNNER_TEMP/Manga-Epic.apk" "$RUNNER_TEMP/aligned.apk"
+          "$BUILD_TOOLS/apksigner" verify --print-certs "$RUNNER_TEMP/Manga-Epic.apk"
+          cp "$RUNNER_TEMP/Manga-Epic.apk" ./Manga-Epic.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Kotatsu-Arabic-apk
-          path: Kotatsu-Arabic.apk
+          name: Manga-Epic-apk
+          path: Manga-Epic.apk
 
       - name: Publish APK to a Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Kotatsu Arabic — build ${{ github.run_number }}
+          name: Manga Epic — build ${{ github.run_number }}
           body: |
-            نسخة كوتاتسو بالمصادر العربية فقط (49 مصدرًا) والأيقونة الجديدة.
-            ثبّت ملف Kotatsu-Arabic.apk مباشرة على الهاتف.
-          files: Kotatsu-Arabic.apk
+            نسخة Manga Epic بالمصادر العربية فقط (49 مصدرًا) وبهوية مستقلة جديدة.
+            ثبّت ملف Manga-Epic.apk مباشرة على الهاتف.
+          files: Manga-Epic.apk
