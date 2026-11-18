@@ -19,13 +19,6 @@
 			android:title="@string/theme"
 			app:useSimpleSummaryProvider="true" />
 
-		<SwitchPreferenceCompat
-			android:defaultValue="false"
-			android:icon="@drawable/ic_dark_mode"
-			android:key="amoled_theme"
-			android:summary="@string/black_dark_theme_summary"
-			android:title="@string/black_dark_theme" />
-
 		<org.koitharu.kotatsu.settings.utils.ActivityListPreference
 			android:icon="@drawable/ic_language"
 			android:key="app_locale"
@@ -41,6 +34,21 @@
 			android:key="list_mode_2"
 			android:title="@string/list_mode"
 			app:useSimpleSummaryProvider="true" />
+
+	</PreferenceCategory>
+
+
+
+	<PreferenceCategory
+		android:key="cat_appearance_advanced"
+		android:title="@string/advanced">
+
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:icon="@drawable/ic_dark_mode"
+			android:key="amoled_theme"
+			android:summary="@string/black_dark_theme_summary"
+			android:title="@string/black_dark_theme" />
 
 		<org.koitharu.kotatsu.settings.utils.SliderPreference
 			android:icon="@drawable/ic_grid"
@@ -72,10 +80,6 @@
 			android:icon="@drawable/ic_new"
 			android:key="manga_list_badges"
 			android:title="@string/badges_in_lists" />
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="@string/manga_page">
 
 		<SwitchPreferenceCompat
 			android:defaultValue="true"
@@ -113,10 +117,6 @@
 			android:key="related_manga"
 			android:summary="@string/related_manga_summary"
 			android:title="@string/related_manga" />
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="@string/navigation">
 
 		<PreferenceScreen
 			android:fragment="org.koitharu.kotatsu.settings.nav.NavConfigFragment"
