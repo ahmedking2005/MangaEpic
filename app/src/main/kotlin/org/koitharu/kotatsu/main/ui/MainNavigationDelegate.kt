@@ -43,6 +43,7 @@ import org.koitharu.kotatsu.explore.ui.ExploreFragment
 import org.koitharu.kotatsu.favourites.ui.container.FavouritesContainerFragment
 import org.koitharu.kotatsu.history.ui.HistoryListFragment
 import org.koitharu.kotatsu.local.ui.LocalListFragment
+import org.koitharu.kotatsu.profile.ui.ProfileFragment
 import org.koitharu.kotatsu.suggestions.ui.SuggestionsFragment
 import org.koitharu.kotatsu.tracker.ui.feed.FeedFragment
 import org.koitharu.kotatsu.tracker.ui.updates.UpdatesFragment
@@ -124,7 +125,7 @@ class MainNavigationDelegate(
 			}
 		} else {
 			val itemId = if (savedInstanceState == null) {
-				firstItem()?.itemId ?: navBar.selectedItemId
+				startItemId() ?: firstItem()?.itemId ?: navBar.selectedItemId
 			} else {
 				navBar.selectedItemId
 			}
@@ -198,6 +199,7 @@ class MainNavigationDelegate(
 			R.id.nav_suggestions -> SuggestionsFragment::class.java
 			R.id.nav_bookmarks -> AllBookmarksFragment::class.java
 			R.id.nav_updated -> UpdatesFragment::class.java
+			R.id.nav_profile -> ProfileFragment::class.java
 			else -> return false
 		}
 		if (!setPrimaryFragment(newFragment)) {
@@ -217,6 +219,7 @@ class MainNavigationDelegate(
 		is SuggestionsFragment -> R.id.nav_suggestions
 		is AllBookmarksFragment -> R.id.nav_bookmarks
 		is UpdatesFragment -> R.id.nav_updated
+		is ProfileFragment -> R.id.nav_profile
 		else -> 0
 	}
 
@@ -287,6 +290,12 @@ class MainNavigationDelegate(
 					value = if (isFloating && navBar !is FloatingBottomNavigationView) false else isLabeled,
 				)
 			}.launchIn(lifecycleOwner.lifecycleScope)
+	}
+
+	/** The tab chosen as the start page (Manga Epic), if it is on the bar at all. */
+	private fun startItemId(): Int? {
+		val item = settings.startPage.navItem ?: return null
+		return item.id.takeIf { navBar.menu.findItem(it) != null }
 	}
 
 	private fun firstItem(): MenuItem? {
