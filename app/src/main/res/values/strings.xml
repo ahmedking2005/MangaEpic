@@ -1274,4 +1274,19 @@ Optional — skip it and you appear as anon.</string>
 	<string name="cloud_close_app">Close</string>
 	<string name="cloud_announcement_title">Announcement</string>
 	<string name="cloud_announcements_channel">Announcements</string>
+	<string name="account_title">Account</string>
+	<string name="account_sign_in">Sign in</string>
+	<string name="account_create">Create account</string>
+	<string name="account_sign_in_hint">Sign in to sync your library, favourites and reading progress across devices.</string>
+	<string name="account_email">E-mail</string>
+	<string name="account_password">Password</string>
+	<string name="account_no_account_yet">No account yet? Create one</string>
+	<string name="account_have_account">Already have an account? Sign in</string>
+	<string name="account_invalid_input">Enter a valid e-mail and a password of at least 6 characters.</string>
+	<string name="account_check_email">Account created. Please confirm your e-mail from the message we sent you, then sign in.</string>
+	<string name="account_error_generic">Something went wrong. Please try again.</string>
+	<string name="account_signed_in_as">Signed in as %1$s</string>
+	<string name="account_signed_out_hint">You are not signed in. Your library stays on this device only.</string>
+	<string name="account_sign_out">Sign out</string>
+	<string name="account_sign_out_confirm">Sign out of your account? Your local library stays on this device.</string>
 </resources>
