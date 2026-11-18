@@ -39,10 +39,10 @@ jobs:
           python3 tools/generate_icons.py
 
       - name: Set app version
-      run: |
-      sed -i "s/versionName = '.*'/versionName = '9.9.${{ github.run_number }}'/" app/build.gradle
-      sed -i "s/versionCode = 2049/versionCode = $((2049 + ${{ github.run_number }}))/" app/build.gradle
-      grep -E "versionCode|versionName" app/build.gradle
+        run: |
+          sed -i "s/versionName = '.*'/versionName = '9.9.${{ github.run_number }}'/" app/build.gradle
+          sed -i "s/versionCode = 2049/versionCode = $((2049 + ${{ github.run_number }}))/" app/build.gradle
+          grep -E "versionCode|versionName" app/build.gradle
 
       - name: Build release APK
         run: ./gradlew assembleRelease --stacktrace
