@@ -351,7 +351,7 @@ abstract class FavouritesDao : MangaQueryBuilder.ConditionCallback {
 	}
 
 	private fun contentTypeCondition(option: ListFilterOption.ContentType): String {
-		val sources = ActiveParsers.sources
+		val sources = ActiveParsers.workingSources
 			.asSequence()
 			.filter { it.contentType == option.contentType }
 			.joinToString(
