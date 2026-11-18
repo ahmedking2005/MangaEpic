@@ -324,6 +324,10 @@
     <string name="reorder">Reorder</string>
     <string name="empty">Empty</string>
     <string name="explore">Explore</string>
+    <string name="latest_updates">Latest updates</string>
+    <string name="profile">Profile</string>
+    <string name="start_page">Start page</string>
+    <string name="profile_coming_soon">Your account, library and reading stats will live here. Coming soon.</string>
     <string name="confirm_exit">Press "Back" again to exit</string>
     <string name="exit_confirmation_summary">Press "Back" twice to exit the app</string>
     <string name="exit_confirmation">Exit confirmation</string>
