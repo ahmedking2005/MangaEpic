@@ -90,4 +90,15 @@
 
 	</PreferenceCategory>
 
+	<PreferenceCategory>
+
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:icon="@drawable/ic_settings"
+			android:key="advanced_settings"
+			android:summary="@string/advanced_settings_summary"
+			android:title="@string/advanced_settings" />
+
+	</PreferenceCategory>
+
 </PreferenceScreen>
