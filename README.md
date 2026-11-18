@@ -1,6 +1,22 @@
-# Manga Epic — مانجا إبيك
+<p align="center">
+  <img src="docs/images/logo.jpg" width="180" alt="Manga Epic">
+</p>
 
-قارئ مانجا مجاني ومفتوح المصدر لأندرويد، متخصص للقارئ العربي. هذه النسخة مبنية على مشروع [Kotatsu-Redo](https://github.com/Kotatsu-Redo/Kotatsu-Redo) مفتوح المصدر، وأُعيد بناؤها بالكامل لخدمة القرّاء العرب.
+<h1 align="center">مانجا إبيك | Manga Epic</h1>
+
+<p align="center">
+  قارئ مانجا مجاني ومفتوح المصدر على Android — بالمصادر العربية فقط
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Android-6.0%2B-green" alt="Android 6.0+">
+  <img src="https://img.shields.io/badge/Kotlin-2.2.10-purple" alt="Kotlin 2.2.10">
+  <img src="https://img.shields.io/badge/License-GPL--3.0-blue" alt="License GPL-3.0">
+</p>
+
+## عن التطبيق
+
+قارئ مانجا مجاني ومفتوح المصدر لأندرويد، متخصص للقارئ العربي. هذه النسخة مبنية على مشروع [Kotatsu-Redo](https://github.com/Kotatsu-Redo/Kotatsu-Redo) مفتوح المصدر، وأُعيد بناؤها بالكامل لخدمة القرّاء العرب: مصادر عربية عاملة فقط، بهوية واسم جديدين.
 
 ## ما يميّز نسخة Manga Epic
 
@@ -34,6 +50,12 @@
 - قفل بكلمة مرور أو بصمة الإصبع، وحماية من لقطات الشاشة.
 - تصميم Material You للهواتف والأجهزة اللوحية وسطح المكتب، مع سمة داكنة سوداء نقية.
 - يعمل على أندرويد 6.0 والأحدث.
+
+## التثبيت
+
+1. افتح صفحة [الإصدارات (Releases)](https://github.com/ahmedking2005/-/releases) وحمّل أحدث ملف APK.
+2. ثبّت الملف على هاتفك مباشرة (قد تحتاج للسماح بالتثبيت من المتصفح).
+3. التطبيق مستقل تمامًا بهويته الخاصة، ويُثبّت بجانب أي قارئ مانجا آخر دون تعارض، وتحديثاته القادمة تُثبّت فوقه مباشرة.
 
 ## المساهمة
 
