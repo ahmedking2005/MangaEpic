@@ -4,6 +4,8 @@ import android.Manifest
 import android.app.BackgroundServiceStartNotAllowedException
 import android.app.ServiceStartNotAllowedException
 import android.content.Intent
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.net.Uri
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.os.Bundle
@@ -54,6 +56,7 @@ import org.koitharu.kotatsu.backups.ui.periodical.PeriodicalBackupService
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.VoiceInputContract
+import org.koitharu.kotatsu.cloud.RemoteConfigManager
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.prefs.StartPage
@@ -154,6 +157,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
+		// Manga Epic: remote gates (maintenance / forced update / announcement) from Firebase Remote Config.
+		checkRemoteConfigGates()
+		RemoteConfigManager.refresh { checkRemoteConfigGates() }
 		// What the floating bar covers reaches the lists as part of the bottom inset. See updateContainerBottomMargin
 		ViewCompat.setOnApplyWindowInsetsListener(viewBinding.container) { _, insets -> insets.withFloatingNavCover() }
 
@@ -432,6 +438,59 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	private fun onResumeEnabledChanged(isEnabled: Boolean) {
 		adjustFabVisibility(isResumeEnabled = isEnabled)
+	}
+
+
+	private var isRemoteGateShown = false
+
+	/** Manga Epic: applies the Firebase Remote Config gates (maintenance, forced update, announcement). */
+	private fun checkRemoteConfigGates() {
+		if (isFinishing) {
+			return
+		}
+		val build = RemoteConfigManager.currentBuild(
+			runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull(),
+		)
+		when {
+			RemoteConfigManager.isMaintenanceMode -> {
+				if (isRemoteGateShown) return
+				isRemoteGateShown = true
+				MaterialAlertDialogBuilder(this)
+					.setTitle(R.string.cloud_maintenance_title)
+					.setMessage(R.string.cloud_maintenance_message)
+					.setCancelable(false)
+					.setPositiveButton(R.string.cloud_close_app) { _, _ -> finish() }
+					.show()
+			}
+			RemoteConfigManager.isForceUpdateEnabled &&
+				build in 1 until RemoteConfigManager.minimumSupportedBuild -> {
+				if (isRemoteGateShown) return
+				isRemoteGateShown = true
+				MaterialAlertDialogBuilder(this)
+					.setTitle(R.string.cloud_update_title)
+					.setMessage(R.string.cloud_update_message)
+					.setCancelable(false)
+					.setPositiveButton(R.string.cloud_update_button) { _, _ ->
+						startActivity(
+							Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.url_github) + "/releases/latest")),
+						)
+						finish()
+					}
+					.show()
+			}
+			RemoteConfigManager.isAnnouncementEnabled -> {
+				val message = RemoteConfigManager.announcementMessage
+				if (message.isNotBlank() && message != settings.lastAnnouncement) {
+					MaterialAlertDialogBuilder(this)
+						.setTitle(R.string.cloud_announcement_title)
+						.setMessage(message)
+						.setPositiveButton(android.R.string.ok) { _, _ ->
+							settings.lastAnnouncement = message
+						}
+						.show()
+				}
+			}
+		}
 	}
 
 	private fun onFirstStart() = try {
