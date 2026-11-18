@@ -47,6 +47,14 @@ abstract class StatsDao {
 	@Query("SELECT COUNT(*) FROM stats WHERE manga_id = :mangaId")
 	abstract fun observeRowCount(mangaId: Long): Flow<Int>
 
+	/** Manga Epic (profile): total reading time across all sessions. */
+	@Query("SELECT IFNULL(SUM(duration),0) FROM stats")
+	abstract suspend fun getTotalDuration(): Long
+
+	/** Manga Epic (profile): raw sessions since a moment, bucketed by day in the repository. */
+	@Query("SELECT started_at AS startedAt, duration AS duration FROM stats WHERE started_at >= :from ORDER BY started_at")
+	abstract suspend fun getSessionsSince(from: Long): List<SessionDuration>
+
 	@Upsert
 	abstract suspend fun upsert(entity: StatsEntity)
 
@@ -95,3 +103,5 @@ abstract class StatsDao {
 }
 
 data class MangaPagesRead(val mangaId: Long, val pages: Int)
+
+data class SessionDuration(val startedAt: Long, val duration: Long)
