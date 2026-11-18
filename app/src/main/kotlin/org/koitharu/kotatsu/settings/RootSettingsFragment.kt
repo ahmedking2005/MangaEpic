@@ -10,6 +10,7 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.preference.Preference
+import androidx.preference.SwitchPreferenceCompat
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
@@ -41,7 +42,18 @@ class RootSettingsFragment : BasePreferenceFragment(0) {
 		bindPreferenceSummary("privacy", R.string.adult_content, R.string.app_security, R.string.your_activity)
 		bindPreferenceSummary("network", R.string.mobile_data, R.string.proxy, R.string.dns_over_https)
 		findPreference<Preference>("about")?.summary = getString(R.string.app_version, BuildConfig.VERSION_NAME)
+		// Manga Epic: accounts & sync (trackers, cloud sync, community, Discord) are advanced
+		// options — hidden until the user turns on the advanced-settings switch below.
+		findPreference<SwitchPreferenceCompat>(AppSettings.KEY_ADVANCED_SETTINGS)?.setOnPreferenceChangeListener { _, newValue ->
+			applyAdvancedVisibility(newValue == true)
+			true
+		}
+		applyAdvancedVisibility(settings.isAdvancedSettingsEnabled)
 		applyExpressiveIconBackgrounds()
+	}
+
+	private fun applyAdvancedVisibility(enabled: Boolean) {
+		findPreference<Preference>("accounts")?.isVisible = enabled
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
