@@ -402,6 +402,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getLong(KEY_SUPABASE_TOKEN_EXPIRES_AT, 0L)
 		set(value) = prefs.edit { putLong(KEY_SUPABASE_TOKEN_EXPIRES_AT, value) }
 
+	/** Manga Epic: epoch millis of the last successful library sync (0 = never). */
+	var lastSyncAt: Long
+		get() = prefs.getLong(KEY_LAST_SYNC_AT, 0L)
+		set(value) = prefs.edit { putLong(KEY_LAST_SYNC_AT, value) }
+
 	val isPagesTabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_TAB, true)
 
@@ -1075,6 +1080,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SUPABASE_USER_ID = "supabase_user_id"
 		const val KEY_SUPABASE_USER_EMAIL = "supabase_user_email"
 		const val KEY_SUPABASE_TOKEN_EXPIRES_AT = "supabase_token_expires_at"
+		const val KEY_LAST_SYNC_AT = "last_sync_at"
 		const val KEY_SOURCES_NEW_DOWNLOADED = "sources_new_downloaded"
 		const val KEY_PARSERS_AUTO_UPDATE = "parsers_auto_update"
 		const val KEY_QUICK_FILTER = "quick_filter"
