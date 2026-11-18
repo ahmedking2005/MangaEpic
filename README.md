@@ -1,103 +1,50 @@
 # Manga Epic — مانجا إبيك
 
-**Manga Epic is an Arabic-first manga reader for Android.** It is a customized
-edition of the open-source Kotatsu-Redo reader, rebuilt for Arab readers:
-every non-Arabic source and every broken source was removed, keeping only
-**49 working Arabic manga sources**. Unified search, favorites, reading
-history, bookmarks, offline downloads and four reader modes — a clean
-Arabic manga experience from the first launch.
+قارئ مانجا مجاني ومفتوح المصدر لأندرويد، متخصص للقارئ العربي. هذه النسخة مبنية على مشروع [Kotatsu-Redo](https://github.com/Kotatsu-Redo/Kotatsu-Redo) مفتوح المصدر، وأُعيد بناؤها بالكامل لخدمة القرّاء العرب.
 
-**مانجا إبيك — قارئ مانجا عربي متخصص لأندرويد.** نسخة معدّلة من قارئ
-Kotatsu-Redo مفتوح المصدر، أُعيد بناؤها لخدمة القارئ العربي: حُذفت كل
-المصادر غير العربية والمصادر المعطّلة، وأُبقي فقط على **49 مصدرًا عربيًا
-عاملًا**، مع بحث موحّد ومفضّلة وسجلّ قراءة وتنزيل للقراءة دون اتصال
-وأنماط قراءة متعددة.
+## ما يميّز نسخة Manga Epic
 
----
+هذه المميزات موجودة في نسخة Manga Epic فقط، وليست في النسخة الأساسية:
 
-<div align="center">
+- **مصادر عربية فقط:** أُبقي على 49 مصدرًا عربيًا عاملًا للمانجا والمانهوا والمانها المترجمة للعربية.
+- **حذف كل المصادر غير العربية:** أُزيلت مئات المصادر الأجنبية من أصل أكثر من 900 مصدر في النسخة الأساسية.
+- **حذف كل المصادر المعطّلة:** أُزيل كل مصدر متوقف عن العمل، فلا نتائج ميتة ولا روابط فاسدة.
+- **فلترة مدمجة في الكود نفسه:** حتى عند وصول تحديثات جديدة لحزم المصادر، لا يظهر داخل التطبيق إلا المصادر العربية العاملة فقط.
+- **هوية عربية جديدة:** اسم جديد «Manga Epic» ولوجو جديد بغلاف أسود وخط بنفسجي مضيء.
+- **تجربة نظيفة من أول تشغيل:** لا حاجة لتصفية المصادر يدويًا أو إخفاء مصادر لا تهمّك؛ التطبيق جاهز للمحتوى العربي فور تثبيته.
 
-**[Kotatsu-Redo](https://github.com/Kotatsu-Redo/Kotatsu-Redo) is a free and open-source manga reader for Android with built-in
-online content sources. The main goal of the fork is to make the best reading manga app.**
+## المميزات الأساسية
 
-![Android 6.0](https://img.shields.io/badge/android-6.0+-brightgreen) [![Discord](https://img.shields.io/discord/898363402467045416?color=5865f2&label=discord)](https://discord.gg/sfPJSQNxfW) [![License](https://img.shields.io/github/license/KotatsuApp/Kotatsu)](https://github.com/KotatsuApp/Kotatsu/blob/devel/LICENSE)
+هذه المميزات موروثة من النسخة الأساسية للمشروع:
 
-### Main Features
+- مصادر مانجا عبر الإنترنت مع إعدادات مسبقة للمصادر، وإمكانية تثبيت مصادرك المفضلة في الأعلى، وتبديل تلقائي بين المرايا عند تعطل أحدها (في هذه النسخة: المصادر العربية العاملة فقط).
+- بحث موحّد في كل مصادرك دفعة واحدة، بالعنوان أو المؤلف أو النوع، مع فلاتر؛ والمصادر الأفضل أداءً تظهر أولًا.
+- مميزات مجتمع اختيارية: تعليقات وتقييمات على المانجا، وترتيب لنتائج البحث والاستكشاف وكتالوج المصادر بناءً على موثوقية المصادر المشتركة، مع علامة 🔥 على المصادر الأكثر رواجًا. لا بريد إلكتروني ولا كلمة مرور؛ فقط مفتاح جهاز يمكنك الاحتفاظ بنسخة احتياطية منه.
+- إيجاد نفس المانجا على مصادر أخرى ونقل تقدم قراءتك إليها عبر ميزة البدائل.
+- مفضّلة بفئات مخصصة، وسجلّ قراءة، وعلامات مرجعية، ووضع تصفح خفي.
+- أربعة أنماط للقراءة: القياسي، ومن اليمين لليسار، والعمودي، وويبتون. مع تكبير قابل للضبط، ومسافات بين الصفحات، وقصّ للهوامش، وإيماءات، وقلب الصفحات بأزرار الصوت، ووضع للحبر الإلكتروني.
+- فحص الفصول الجديدة مع موجز تحديثات، وتنزيل تلقائي اختياري للفصول الجديدة، وتوصيات مع فلاتر للأنواع.
+- تنزيل المانجا للقراءة دون اتصال (بصيغة CBZ أو كمجلدات)، وفتح أرشيفات CBZ/ZIP الخاصة بك.
+- مزامنة المفضّلة والسجلّ بين أجهزتك، مع إمكانية استخدام خادم مزامنة خاص بك.
+- نسخ احتياطي تلقائي مجدول إلى مجلد من اختيارك أو إلى تيليجرام.
+- تتبّع القراءة مع AniList وMyAnimeList وKitsu وShikimori، إضافة إلى Discord Rich Presence.
+- إحصائيات قراءة وتقديرات لوقت القراءة.
+- ودجت للشاشة الرئيسية يعرض أحدث المانجا ومكتبتك.
+- أدوات شبكة: بروكسي، وDNS عبر HTTPS، وبروكسي للصور، ومعالجة مدمجة لـCloudFlare.
+- قفل بكلمة مرور أو بصمة الإصبع، وحماية من لقطات الشاشة.
+- تصميم Material You للهواتف والأجهزة اللوحية وسطح المكتب، مع سمة داكنة سوداء نقية.
+- يعمل على أندرويد 6.0 والأحدث.
 
-<div align="left">
+## المساهمة
 
--   900+ working online manga sources ([kotatsu-parsers-redo](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo)), with source presets, pinning and automatic mirror switching
--   Search across all your sources at once, by title, author or genre, with filters; sources that work best come first
--   Opt-in community features: comments and ratings on manga, plus shared source reliability that ranks search, Explore and the source catalog, with 🔥 on the most popular sources. No email or password, just a device key you can back up
--   Find the same manga on other sources and migrate your progress with Alternatives
--   Favorites in custom categories, reading history, bookmarks and incognito mode
--   Four reader modes: standard, right-to-left, vertical and Webtoon. Adjustable zoom, gaps, cropping, gestures, volume-key paging and an e-ink mode
--   New chapter checks with an updates feed, optional auto-download of new chapters, and recommendations with genre filters
--   Download manga to read offline (CBZ or folders) and open your own CBZ/ZIP archives
--   Sync favorites and history across devices, using your own sync server if you like
--   Scheduled automatic backups to a folder of your choice or to Telegram
--   Tracking with AniList, MyAnimeList, Kitsu and Shikimori, plus Discord Rich Presence
--   Reading statistics and reading time estimates
--   Home screen widgets for recent manga and your shelf
--   Network tools: proxy, DNS over HTTPS, image proxy and built-in CloudFlare handling
--   Password or fingerprint lock and screenshot protection
--   Material You design for phones, tablets and desktop, with a pure black dark theme
--   Supports Android 6.0 and newer
+طلبات السحب (Pull Requests) مرحّب بها. راجع ملف CONTRIBUTING.md في المشروع الأصلي للاطلاع على الإرشادات.
 
-</div>
+## الترخيص
 
-### In-App Screenshots
+هذا البرنامج مرخّص تحت رخصة GNU العامة الإصدار الثالث (GPL v3). يمكنك نسخ البرنامج وتوزيعه وتعديله بشرط تتبّع التغييرات والتواريخ في الملفات المصدرية، وأي تعديلات أو برامج تتضمن كودًا مرخّصًا تحت GPL يجب أن تتاح هي أيضًا تحت نفس الرخصة مع تعليمات البناء والتثبيت.
 
-<div align="center">
-    <img src="./metadata/en-US/images/phoneScreenshots/1.png" alt="Mobile view" width="250"/>
-    <img src="./metadata/en-US/images/phoneScreenshots/2.png" alt="Mobile view" width="250"/>
-    <img src="./metadata/en-US/images/phoneScreenshots/3.png" alt="Mobile view" width="250"/>
-    <img src="./metadata/en-US/images/phoneScreenshots/4.png" alt="Mobile view" width="250"/>
-    <img src="./metadata/en-US/images/phoneScreenshots/5.png" alt="Mobile view" width="250"/>
-    <img src="./metadata/en-US/images/phoneScreenshots/6.png" alt="Mobile view" width="250"/>
-</div>
+نص الرخصة: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-<br>
+## إخلاء مسؤولية DMCA
 
-<div align="center">
-    <img src="./metadata/en-US/images/tenInchScreenshots/1.png" alt="Tablet view" width="400"/>
-    <img src="./metadata/en-US/images/tenInchScreenshots/2.png" alt="Tablet view" width="400"/>
-</div>
-
-### Contributing
-
-**📌 Pull requests are welcome, if you want:
-See [CONTRIBUTING.md](https://github.com/Kotatsu-Redo/Kotatsu-Redo/blob/devel/CONTRIBUTING.md) for the guidelines**
-
-### Certificate fingerprints
-
-```plaintext
-70:BD:84:07:13:01:84:5E:A3:D0:A4:E5:F3:3A:D2:41:0D:C9:FC:EB
-```
-
-```plaintext
-FF:D9:C9:91:06:64:07:69:3C:F4:6E:46:9F:EA:DB:88:8D:33:FB:B2:FB:A7:7E:A3:79:B0:CA:12:A3:5C:66:1A
-```
-
-### License
-
-[![GNU GPLv3 Image](https://www.gnu.org/graphics/gplv3-127x51.png)](http://www.gnu.org/licenses/gpl-3.0.en.html)
-
-<div align="left">
-
-You may copy, distribute and modify the software as long as you track changes/dates in source files. Any modifications
-to or software including (via compiler) GPL-licensed code must also be made available under the GPL along with build &
-install instructions.
-
-</div>
-
-### DMCA disclaimer
-
-<div align="left">
-
-The developers of this application do not have any affiliation with the content available in the app and does not store
-or distribute any content. This application should be considered a web browser, all content that can be found using this
-application is freely available on the Internet. All DMCA takedown requests should be sent to the owners of the website
-where the content is hosted.
-
-</div>
+مطوّرو هذا التطبيق لا تربطهم أي علاقة بالمحتوى المتاح داخل التطبيق، ولا يخزّنون أي محتوى أو يوزّعونه. يجب اعتبار هذا التطبيق متصفح ويب؛ فكل المحتوى الذي يمكن الوصول إليه من خلاله متاح بحرية على الإنترنت. يجب إرسال جميع طلبات الإزالة بموجب DMCA إلى مالكي المواقع التي تستضيف المحتوى.
