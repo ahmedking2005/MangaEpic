@@ -12,13 +12,6 @@
 			android:title="@string/default_mode"
 			app:useSimpleSummaryProvider="true" />
 
-		<SwitchPreferenceCompat
-			android:defaultValue="true"
-			android:icon="@drawable/ic_auto_fix"
-			android:key="reader_mode_detect"
-			android:summary="@string/detect_reader_mode_summary"
-			android:title="@string/detect_reader_mode" />
-
 		<ListPreference
 			android:entries="@array/zoom_modes"
 			android:icon="@drawable/ic_zoom_in"
@@ -33,26 +26,12 @@
 			android:title="@string/pages_animation"
 			app:useSimpleSummaryProvider="true" />
 
-		<MultiSelectListPreference
-			android:entries="@array/reader_crop"
-			android:entryValues="@array/values_reader_crop"
-			android:icon="@drawable/ic_crop"
-			android:key="reader_crop"
-			android:title="@string/crop_pages" />
-
 		<ListPreference
 			android:entries="@array/reader_backgrounds"
 			android:icon="@drawable/ic_appearance"
 			android:key="reader_background"
 			android:title="@string/background"
 			app:useSimpleSummaryProvider="true" />
-
-		<SwitchPreferenceCompat
-			android:defaultValue="false"
-			android:icon="@drawable/ic_book_page"
-			android:key="pages_numbers"
-			android:summary="@string/show_pages_numbers_summary"
-			android:title="@string/show_pages_numbers" />
 
 	</PreferenceCategory>
 
@@ -64,6 +43,70 @@
 			android:key="webtoon_zoom"
 			android:summary="@string/webtoon_zoom_summary"
 			android:title="@string/webtoon_zoom" />
+
+	</PreferenceCategory>
+
+
+	<PreferenceCategory android:title="@string/reader_group_screen">
+
+		<ListPreference
+			android:entries="@array/screen_orientations"
+			android:icon="@drawable/ic_screen_rotation"
+			android:key="reader_orientation"
+			android:title="@string/screen_orientation"
+			app:useSimpleSummaryProvider="true" />
+
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="@string/hidden_images">
+
+		<SwitchPreferenceCompat
+			android:defaultValue="true"
+			android:icon="@drawable/ic_delete"
+			android:key="reader_erase_gesture"
+			android:summary="@string/erase_gesture_summary"
+			android:title="@string/erase_gesture" />
+
+		<Preference
+			android:icon="@drawable/ic_info_outline"
+			android:key="erase_tutorial"
+			android:persistent="false"
+			android:summary="@string/erase_tutorial_again_summary"
+			android:title="@string/erase_tutorial_again" />
+
+		<PreferenceScreen
+			android:fragment="org.koitharu.kotatsu.reader.ui.erase.HiddenImagesFragment"
+			android:icon="@drawable/ic_eye_off"
+			android:key="hidden_images"
+			android:summary="@string/hidden_images_summary"
+			android:title="@string/hidden_images" />
+
+	</PreferenceCategory>
+
+	<PreferenceCategory
+		android:key="cat_reader_advanced"
+		android:title="@string/advanced">
+
+		<SwitchPreferenceCompat
+			android:defaultValue="true"
+			android:icon="@drawable/ic_auto_fix"
+			android:key="reader_mode_detect"
+			android:summary="@string/detect_reader_mode_summary"
+			android:title="@string/detect_reader_mode" />
+
+		<MultiSelectListPreference
+			android:entries="@array/reader_crop"
+			android:entryValues="@array/values_reader_crop"
+			android:icon="@drawable/ic_crop"
+			android:key="reader_crop"
+			android:title="@string/crop_pages" />
+
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:icon="@drawable/ic_book_page"
+			android:key="pages_numbers"
+			android:summary="@string/show_pages_numbers_summary"
+			android:title="@string/show_pages_numbers" />
 
 		<org.koitharu.kotatsu.settings.utils.SliderPreference
 			android:dependency="webtoon_zoom"
@@ -89,10 +132,6 @@
 			android:key="webtoon_pull_gesture"
 			android:summary="@string/enable_pull_gesture_summary"
 			android:title="@string/enable_pull_gesture_title" />
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="@string/reader_group_controls">
 
 		<Preference
 			android:icon="@drawable/ic_tap_reorder"
@@ -135,23 +174,12 @@
 			android:summary="@string/reader_zoom_buttons_summary"
 			android:title="@string/reader_zoom_buttons" />
 
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="@string/reader_group_screen">
-
 		<SwitchPreferenceCompat
 			android:defaultValue="true"
 			android:icon="@drawable/ic_fullscreen"
 			android:key="reader_fullscreen"
 			android:summary="@string/reader_fullscreen_summary"
 			android:title="@string/fullscreen_mode" />
-
-		<ListPreference
-			android:entries="@array/screen_orientations"
-			android:icon="@drawable/ic_screen_rotation"
-			android:key="reader_orientation"
-			android:title="@string/screen_orientation"
-			app:useSimpleSummaryProvider="true" />
 
 		<SwitchPreferenceCompat
 			android:defaultValue="true"
@@ -180,35 +208,6 @@
 			android:key="reader_chapter_toast"
 			android:summary="@string/reader_chapter_toast_summary"
 			android:title="@string/reader_chapter_toast" />
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="@string/hidden_images">
-
-		<SwitchPreferenceCompat
-			android:defaultValue="true"
-			android:icon="@drawable/ic_delete"
-			android:key="reader_erase_gesture"
-			android:summary="@string/erase_gesture_summary"
-			android:title="@string/erase_gesture" />
-
-		<Preference
-			android:icon="@drawable/ic_info_outline"
-			android:key="erase_tutorial"
-			android:persistent="false"
-			android:summary="@string/erase_tutorial_again_summary"
-			android:title="@string/erase_tutorial_again" />
-
-		<PreferenceScreen
-			android:fragment="org.koitharu.kotatsu.reader.ui.erase.HiddenImagesFragment"
-			android:icon="@drawable/ic_eye_off"
-			android:key="hidden_images"
-			android:summary="@string/hidden_images_summary"
-			android:title="@string/hidden_images" />
-
-	</PreferenceCategory>
-
-	<PreferenceCategory android:title="@string/advanced">
 
 		<ListPreference
 			android:defaultValue="2"
