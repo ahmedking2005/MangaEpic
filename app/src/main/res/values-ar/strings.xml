@@ -1207,4 +1207,12 @@
 	<string name="sources_version_downloaded">%1$s، تم تحديثها منذ تثبيت التطبيق</string>
 	<string name="sources_up_to_date">مصادر المانجا محدثة</string>
 	<string name="sources_updated">تم تحديث مصادر المانجا</string>
+	<string name="cloud_maintenance_title">صيانة مؤقتة</string>
+	<string name="cloud_maintenance_message">مانجا إبيك متوقف مؤقتًا للصيانة. حاول مرة أخرى بعد قليل.</string>
+	<string name="cloud_update_title">تحديث مطلوب</string>
+	<string name="cloud_update_message">هذا الإصدار من مانجا إبيك لم يعد مدعومًا. حدّث التطبيق لمتابعة القراءة.</string>
+	<string name="cloud_update_button">حدّث الآن</string>
+	<string name="cloud_close_app">إغلاق</string>
+	<string name="cloud_announcement_title">إعلان</string>
+	<string name="cloud_announcements_channel">الإعلانات</string>
 </resources>
