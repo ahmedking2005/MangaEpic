@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.update
 import org.koitharu.kotatsu.parsers.DirectParsersAccess
 import org.koitharu.kotatsu.parsers.ParsersBundle
 import org.koitharu.kotatsu.parsers.core.ParsersBundleImpl
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import java.util.Collections
 import java.util.concurrent.CountDownLatch
@@ -23,6 +24,16 @@ import java.util.concurrent.TimeUnit
  * Kept outside of dependency injection because sources are looked up by name from places that have none, see
  * [org.koitharu.kotatsu.core.model.MangaSource].
  */
+/** Sources removed from Manga Epic by name at the owner's request (2026-11-18). */
+private val REMOVED_SOURCES = setOf(
+	"MANGABALL_AR", "SCANS4U", "ARABTOONS", "ARABSHENTAI", "GMANGA", "HENTAISLAYER",
+	"HENTAMAN", "MANGAATREND", "MANGAHUB_LINK", "MANHATIC", "NIJITRANSLATIONS", "PEACHBL",
+	"WEBTOONEMPIRE", "XCOMIC", "YURIMOONSUB", "MANGAAILAND", "MANHATOK", "YOKAITEAM",
+	"LONERTL", "XSANOMANGA", "MANGAROSE", "MANGAFLAME", "ONMA", "YONABAR",
+	"OLAOE", "DILARTUBE", "FLARES", "ASQORG", "MANGASOUL", "AREASCANS",
+	"MANJANOON", "WAVETEAMY",
+)
+
 object ActiveParsers {
 
 	/** What is waited for the parsers kept from the last run, by whoever needs the sources before they are loaded. */
@@ -128,10 +139,16 @@ object ActiveParsers {
 		 * excluded as before. Every other locale — including the multi-language sources, whose locale is
 		 * blank — is dropped here, at the one place every source list in the app is derived from, so a
 		 * downloaded parsers bundle cannot bring them back either.
+		 *
+		 * Manga Epic additions: hentai sources are excluded categorically, and the sources in
+		 * [REMOVED_SOURCES] are dropped by name at the owner's request (2026-11-18).
 		 */
 		val working: Set<ParserMangaSource> by lazy(LazyThreadSafetyMode.PUBLICATION) {
 			Collections.unmodifiableSet(
-				bundle.sources.filterNotTo(LinkedHashSet()) { it.isBroken || it.locale != "ar" },
+				bundle.sources.filterNotTo(LinkedHashSet()) {
+					it.isBroken || it.locale != "ar" ||
+						it.contentType == ContentType.HENTAI || it.name in REMOVED_SOURCES
+				},
 			)
 		}
 	}
