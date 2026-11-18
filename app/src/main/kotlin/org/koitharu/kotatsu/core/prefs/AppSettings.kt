@@ -377,6 +377,31 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_LAST_ANNOUNCEMENT, "").orEmpty()
 		set(value) = prefs.edit { putString(KEY_LAST_ANNOUNCEMENT, value) }
 
+	/** Manga Epic: Supabase session (access token; refreshed transparently by SupabaseClient). */
+	var supabaseAccessToken: String
+		get() = prefs.getString(KEY_SUPABASE_ACCESS_TOKEN, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_SUPABASE_ACCESS_TOKEN, value) }
+
+	/** Manga Epic: Supabase session refresh token; empty means signed out. */
+	var supabaseRefreshToken: String
+		get() = prefs.getString(KEY_SUPABASE_REFRESH_TOKEN, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_SUPABASE_REFRESH_TOKEN, value) }
+
+	/** Manga Epic: Supabase user id (auth.uid()) of the signed-in user. */
+	var supabaseUserId: String
+		get() = prefs.getString(KEY_SUPABASE_USER_ID, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_SUPABASE_USER_ID, value) }
+
+	/** Manga Epic: e-mail of the signed-in Supabase user. */
+	var supabaseUserEmail: String
+		get() = prefs.getString(KEY_SUPABASE_USER_EMAIL, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_SUPABASE_USER_EMAIL, value) }
+
+	/** Manga Epic: epoch millis when the Supabase access token expires. */
+	var supabaseTokenExpiresAt: Long
+		get() = prefs.getLong(KEY_SUPABASE_TOKEN_EXPIRES_AT, 0L)
+		set(value) = prefs.edit { putLong(KEY_SUPABASE_TOKEN_EXPIRES_AT, value) }
+
 	val isPagesTabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_TAB, true)
 
@@ -1045,6 +1070,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_REMAINING_SOURCES_ENABLED = "remaining_sources_enabled_v1"
 		const val KEY_FCM_TOKEN = "fcm_token"
 		const val KEY_LAST_ANNOUNCEMENT = "last_announcement"
+		const val KEY_SUPABASE_ACCESS_TOKEN = "supabase_access_token"
+		const val KEY_SUPABASE_REFRESH_TOKEN = "supabase_refresh_token"
+		const val KEY_SUPABASE_USER_ID = "supabase_user_id"
+		const val KEY_SUPABASE_USER_EMAIL = "supabase_user_email"
+		const val KEY_SUPABASE_TOKEN_EXPIRES_AT = "supabase_token_expires_at"
 		const val KEY_SOURCES_NEW_DOWNLOADED = "sources_new_downloaded"
 		const val KEY_PARSERS_AUTO_UPDATE = "parsers_auto_update"
 		const val KEY_QUICK_FILTER = "quick_filter"
