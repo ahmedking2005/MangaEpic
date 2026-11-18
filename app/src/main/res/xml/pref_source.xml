@@ -23,14 +23,6 @@
 
 	<SwitchPreferenceCompat
 		android:defaultValue="false"
-		android:icon="@drawable/ic_disable"
-		android:key="no_auto_captcha"
-		android:order="103"
-		android:summary="@string/disable_captcha_auto_solve_summary"
-		android:title="@string/disable_captcha_auto_solve" />
-
-	<SwitchPreferenceCompat
-		android:defaultValue="false"
 		android:icon="@drawable/ic_timelapse"
 		android:key="slowdown"
 		android:order="105"
