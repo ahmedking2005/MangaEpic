@@ -12,7 +12,11 @@ returns trigger
 language plpgsql
 as $$
 begin
-  new.updated_at = now();
+  -- Preserve a client-provided updated_at (the app syncs with last-write-wins);
+  -- only stamp now() when an update did not change it (e.g. dashboard edits).
+  if new.updated_at is not distinct from old.updated_at then
+    new.updated_at = now();
+  end if;
   return new;
 end;
 $$;
