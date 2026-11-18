@@ -101,6 +101,9 @@ begin
 end;
 $$;
 
+-- ---------- phase 4 addition: reading percent (local history stores percent, not total pages) ----------
+alter table public.reading_progress add column if not exists percent real not null default 0;
+
 -- ---------- indexes for the sync queries ----------
 create index if not exists idx_favorites_user_updated  on public.favorites (user_id, updated_at);
 create index if not exists idx_progress_user_updated   on public.reading_progress (user_id, updated_at);
