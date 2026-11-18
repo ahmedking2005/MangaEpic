@@ -5,10 +5,12 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.ViewOutlineProvider
+import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -28,6 +30,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.cloud.SupabaseClient
+import org.koitharu.kotatsu.cloud.ui.AccountActivity
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.formatDurationShort
 import org.koitharu.kotatsu.stats.ui.views.BarChartView
@@ -49,7 +53,16 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 	@Inject
 	lateinit var settings: AppSettings
 
+	@Inject
+	lateinit var supabase: SupabaseClient
+
 	private val viewModel by viewModels<ProfileViewModel>()
+
+	private val accountLauncher = registerForActivityResult(
+		ActivityResultContracts.StartActivityForResult(),
+	) {
+		bindAccount()
+	}
 
 	private val avatarPicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
 		if (uri != null) {
@@ -84,6 +97,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 		avatarView.setOnClickListener { avatarPicker.launch("image/*") }
 		view.findViewById<TextView>(R.id.nameView).setOnClickListener { showNameDialog() }
 		bindProfile(view)
+		bindAccount(view)
 		val todayValue = view.findViewById<TextView>(R.id.todayValue)
 		val weekValue = view.findViewById<TextView>(R.id.weekValue)
 		val weekChart = view.findViewById<BarChartView>(R.id.weekChart)
@@ -119,6 +133,35 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 		collect(viewModel.chaptersRead) { count ->
 			if (count != null) {
 				chaptersValue.text = count.toString()
+			}
+		}
+	}
+
+
+	/** Manga Epic: the cloud account row — sign-in entry point or the signed-in e-mail + sign-out. */
+	private fun bindAccount(root: View? = view) {
+		val status = root?.findViewById<TextView>(R.id.accountStatus) ?: return
+		val button = root.findViewById<Button>(R.id.accountButton) ?: return
+		if (supabase.isSignedIn) {
+			status.text = getString(R.string.account_signed_in_as, supabase.userEmail)
+			button.setText(R.string.account_sign_out)
+			button.setOnClickListener {
+				MaterialAlertDialogBuilder(requireContext())
+					.setMessage(R.string.account_sign_out_confirm)
+					.setPositiveButton(R.string.account_sign_out) { _, _ ->
+						lifecycleScope.launch {
+							supabase.signOut()
+							bindAccount()
+						}
+					}
+					.setNegativeButton(android.R.string.cancel, null)
+					.show()
+			}
+		} else {
+			status.setText(R.string.account_signed_out_hint)
+			button.setText(R.string.account_sign_in)
+			button.setOnClickListener {
+				accountLauncher.launch(Intent(requireContext(), AccountActivity::class.java))
 			}
 		}
 	}
