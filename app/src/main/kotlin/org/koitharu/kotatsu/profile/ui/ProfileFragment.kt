@@ -30,14 +30,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.cloud.LibrarySync
 import org.koitharu.kotatsu.cloud.SupabaseClient
 import org.koitharu.kotatsu.cloud.ui.AccountActivity
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.formatDurationShort
 import org.koitharu.kotatsu.stats.ui.views.BarChartView
+import java.text.DateFormat
 import java.io.File
 import java.time.LocalDate
 import java.time.format.TextStyle
+import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -56,12 +59,18 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 	@Inject
 	lateinit var supabase: SupabaseClient
 
+	@Inject
+	lateinit var librarySync: LibrarySync
+
 	private val viewModel by viewModels<ProfileViewModel>()
 
 	private val accountLauncher = registerForActivityResult(
 		ActivityResultContracts.StartActivityForResult(),
 	) {
 		bindAccount()
+		if (supabase.isSignedIn) {
+			runSync()
+		}
 	}
 
 	private val avatarPicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -138,6 +147,39 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 	}
 
 
+	/** Manga Epic: runs one library sync cycle and reflects the state on the account card. */
+	private fun runSync() {
+		val status = view?.findViewById<TextView>(R.id.syncStatus) ?: return
+		status.setText(R.string.account_syncing)
+		lifecycleScope.launch {
+			val result = librarySync.syncAll()
+			bindSyncStatus()
+			if (result.isFailure) {
+				view?.findViewById<TextView>(R.id.syncStatus)
+					?.setText(R.string.account_sync_failed)
+			}
+		}
+	}
+
+	private fun bindSyncStatus(root: View? = view) {
+		val status = root?.findViewById<TextView>(R.id.syncStatus) ?: return
+		if (!supabase.isSignedIn) {
+			status.text = ""
+			status.setOnClickListener(null)
+			return
+		}
+		val last = settings.lastSyncAt
+		status.text = if (last > 0L) {
+			getString(
+				R.string.account_last_sync,
+				DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(last)),
+			)
+		} else {
+			getString(R.string.account_sync_never)
+		}
+		status.setOnClickListener { runSync() }
+	}
+
 	/** Manga Epic: the cloud account row — sign-in entry point or the signed-in e-mail + sign-out. */
 	private fun bindAccount(root: View? = view) {
 		val status = root?.findViewById<TextView>(R.id.accountStatus) ?: return
@@ -157,12 +199,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 					.setNegativeButton(android.R.string.cancel, null)
 					.show()
 			}
+			bindSyncStatus(root)
 		} else {
 			status.setText(R.string.account_signed_out_hint)
 			button.setText(R.string.account_sign_in)
 			button.setOnClickListener {
 				accountLauncher.launch(Intent(requireContext(), AccountActivity::class.java))
 			}
+			bindSyncStatus(root)
 		}
 	}
 
