@@ -30,7 +30,7 @@ jobs:
 
       - name: Install SDK components
         run: |
-          sdkmanager "platforms;android-37" "build-tools;35.0.0" "platform-tools"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin" && sdkmanager "platforms;android-37" "build-tools;35.0.0" "platform-tools"
           yes | sdkmanager --licenses > /dev/null || true
 
       - name: Generate custom launcher icons
