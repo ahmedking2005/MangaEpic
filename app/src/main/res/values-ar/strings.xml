@@ -1215,4 +1215,19 @@
 	<string name="cloud_close_app">إغلاق</string>
 	<string name="cloud_announcement_title">إعلان</string>
 	<string name="cloud_announcements_channel">الإعلانات</string>
+	<string name="account_title">الحساب</string>
+	<string name="account_sign_in">تسجيل الدخول</string>
+	<string name="account_create">إنشاء حساب</string>
+	<string name="account_sign_in_hint">سجّل دخولك لمزامنة مكتبتك ومفضلتك وتقدم قراءتك على كل أجهزتك.</string>
+	<string name="account_email">البريد الإلكتروني</string>
+	<string name="account_password">كلمة المرور</string>
+	<string name="account_no_account_yet">ليس لديك حساب؟ أنشئ واحدًا</string>
+	<string name="account_have_account">عندك حساب بالفعل؟ سجّل دخولك</string>
+	<string name="account_invalid_input">ادخل بريدًا صحيحًا وكلمة مرور من 6 أحرف على الأقل.</string>
+	<string name="account_check_email">اتعمل الحساب. أكّد بريدك من الرسالة اللي وصلتك وبعدين سجّل دخولك.</string>
+	<string name="account_error_generic">حصلت مشكلة. حاول مرة تانية.</string>
+	<string name="account_signed_in_as">مسجّل دخولك بـ %1$s</string>
+	<string name="account_signed_out_hint">انت مش مسجّل دخولك. مكتبتك محفوظة على الجهاز ده بس.</string>
+	<string name="account_sign_out">تسجيل الخروج</string>
+	<string name="account_sign_out_confirm">تسجّل خروجك من حسابك؟ مكتبتك المحلية هتفضل على الجهاز ده.</string>
 </resources>
