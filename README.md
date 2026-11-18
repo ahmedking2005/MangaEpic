@@ -1,3 +1,20 @@
+# Manga Epic — مانجا إبيك
+
+**Manga Epic is an Arabic-first manga reader for Android.** It is a customized
+edition of the open-source Kotatsu-Redo reader, rebuilt for Arab readers:
+every non-Arabic source and every broken source was removed, keeping only
+**49 working Arabic manga sources**. Unified search, favorites, reading
+history, bookmarks, offline downloads and four reader modes — a clean
+Arabic manga experience from the first launch.
+
+**مانجا إبيك — قارئ مانجا عربي متخصص لأندرويد.** نسخة معدّلة من قارئ
+Kotatsu-Redo مفتوح المصدر، أُعيد بناؤها لخدمة القارئ العربي: حُذفت كل
+المصادر غير العربية والمصادر المعطّلة، وأُبقي فقط على **49 مصدرًا عربيًا
+عاملًا**، مع بحث موحّد ومفضّلة وسجلّ قراءة وتنزيل للقراءة دون اتصال
+وأنماط قراءة متعددة.
+
+---
+
 <div align="center">
 
 **[Kotatsu-Redo](https://github.com/Kotatsu-Redo/Kotatsu-Redo) is a free and open-source manga reader for Android with built-in
