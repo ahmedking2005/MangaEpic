@@ -69,9 +69,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	var mainNavItems: List<NavItem>
 		get() {
+			migrateNavLayoutV2()
 			val raw = prefs.getString(KEY_NAV_MAIN, null)?.split(',')
 			return if (raw.isNullOrEmpty()) {
-				listOf(NavItem.HISTORY, NavItem.FAVORITES, NavItem.EXPLORE, NavItem.SOURCES, NavItem.FEED)
+				DEFAULT_NAV_ITEMS
 			} else {
 				withSourcesTab(raw.mapNotNull { x -> NavItem.entries.find(x) }.ifEmpty { listOf(NavItem.EXPLORE) })
 			}
@@ -81,6 +82,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 				putString(KEY_NAV_MAIN, value.joinToString(",") { it.name })
 			}
 		}
+
+	/** The screen the app opens on (Manga Epic): one of the bottom-bar tabs, or the downloads screen. */
+	var startPage: StartPage
+		get() = prefs.getEnumValue(KEY_START_PAGE, StartPage.LATEST)
+		set(value) = prefs.edit { putEnumValue(KEY_START_PAGE, value) }
 
 	val isNavLabelsVisible: Boolean
 		get() = prefs.getBoolean(KEY_NAV_LABELS, true)
@@ -573,6 +579,21 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_READER_ERASE_GESTURE, true)
 
 	/**
+	 * Manga Epic restructured its main screen (2026-11-18): the old Explore feed became "Latest
+	 * updates", the sources list took the Explore name, and a Profile tab was added. An existing
+	 * install gets the new layout once; whatever the reader arranges afterwards sticks.
+	 */
+	private fun migrateNavLayoutV2() {
+		if (prefs.getBoolean(KEY_NAV_LAYOUT_V2, false)) {
+			return
+		}
+		prefs.edit { putBoolean(KEY_NAV_LAYOUT_V2, true) }
+		if (prefs.contains(KEY_NAV_MAIN)) {
+			mainNavItems = DEFAULT_NAV_ITEMS
+		}
+	}
+
+	/**
 	 * A saved layout's EXPLORE used to be the list of sources, which is now the SOURCES tab, so it gets
 	 * that tab beside the new screen, once. Removing it afterwards has to stick, hence the flag. A bar
 	 * already at the limit is left alone: adding one would push the reader's own last tab off the end, and
@@ -965,6 +986,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_DISABLE_NSFW = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
 		const val KEY_NAV_MAIN = "nav_main"
+		const val KEY_START_PAGE = "start_page"
+		private const val KEY_NAV_LAYOUT_V2 = "nav_layout_v2"
+		private val DEFAULT_NAV_ITEMS = listOf(
+			NavItem.EXPLORE, NavItem.LOCAL, NavItem.FAVORITES, NavItem.HISTORY, NavItem.SUGGESTIONS, NavItem.PROFILE,
+		)
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"
 		const val KEY_FLOATING_NAV = "floating_nav"
