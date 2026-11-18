@@ -1266,4 +1266,12 @@ Optional — skip it and you appear as anon.</string>
 	<string name="sources_version_downloaded">%1$s, updated since the app was installed</string>
 	<string name="sources_up_to_date">Manga sources are up to date</string>
 	<string name="sources_updated">Manga sources updated</string>
+	<string name="cloud_maintenance_title">Under maintenance</string>
+	<string name="cloud_maintenance_message">Manga Epic is briefly down for maintenance. Please try again a little later.</string>
+	<string name="cloud_update_title">Update required</string>
+	<string name="cloud_update_message">This version of Manga Epic is no longer supported. Please update to keep reading.</string>
+	<string name="cloud_update_button">Update now</string>
+	<string name="cloud_close_app">Close</string>
+	<string name="cloud_announcement_title">Announcement</string>
+	<string name="cloud_announcements_channel">Announcements</string>
 </resources>
