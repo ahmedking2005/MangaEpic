@@ -42,6 +42,12 @@ class NetworkSettingsFragment :
 			setDefaultValueCompat(DoHProvider.NONE.name)
 		}
 		bindProxySummary()
+		// Manga Epic: connection plumbing (proxy, DNS-over-HTTPS, image proxies) and the
+		// troubleshooting switches are advanced options, revealed by the advanced-settings
+		// switch on the root settings screen. Mobile-data options stay visible.
+		val advanced = settings.isAdvancedSettingsEnabled
+		findPreference<Preference>("cat_connection")?.isVisible = advanced
+		findPreference<Preference>("cat_troubleshooting")?.isVisible = advanced
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
