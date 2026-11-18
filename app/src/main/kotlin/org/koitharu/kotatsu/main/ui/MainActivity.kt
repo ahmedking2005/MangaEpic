@@ -56,6 +56,7 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.os.VoiceInputContract
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.NavItem
+import org.koitharu.kotatsu.core.prefs.StartPage
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
@@ -201,6 +202,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 		if (savedInstanceState == null) {
 			onFirstStart()
+		}
+
+		if (savedInstanceState == null && settings.startPage == StartPage.DOWNLOADS) {
+			// The downloads start page (Manga Epic) is its own activity, opened over the main screen.
+			router.openDownloads()
 		}
 
 		viewModel.onOpenReader.observeEvent(this, this::onOpenReader)
