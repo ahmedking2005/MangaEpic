@@ -300,6 +300,10 @@
     <string name="reorder">إعادة ترتيب</string>
     <string name="empty">فارغ</string>
     <string name="explore">استكشف</string>
+    <string name="latest_updates">آخر التحديثات</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="start_page">صفحة البداية</string>
+    <string name="profile_coming_soon">حسابك ومكتبتك وإحصائيات قراءتك هتكون هنا. قريبًا.</string>
     <string name="other_cache">بيانات تخزين مؤقت أخرى</string>
     <string name="storage_usage">استهلاك التخزين</string>
     <string name="available">متوفر</string>
