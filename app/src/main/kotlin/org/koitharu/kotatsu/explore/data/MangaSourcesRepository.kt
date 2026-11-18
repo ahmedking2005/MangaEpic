@@ -288,6 +288,15 @@ class MangaSourcesRepository @Inject constructor(
 		// Nothing is held while this is done, some callers being inside a transaction of the database: two of them
 		// at once do the same thing twice, the rows going in only where there are none
 		val isChanged = insertNewSources()
+		// Manga Epic one-time fix-up: installs made before the remaining sources became
+		// enabled-by-default have them all switched off; turn exactly those sources on once.
+		// Whatever a reader disables afterwards stays disabled.
+		if (!settings.isRemainingSourcesEnabledOnce) {
+			for (source in allMangaSources) {
+				dao.setEnabled(source.name, true)
+			}
+			settings.isRemainingSourcesEnabledOnce = true
+		}
 		// Only now: a failure above, or the caller going away, leaves it to be done by whoever asks next
 		assimilatedGeneration.set(generation)
 		return isChanged
@@ -303,11 +312,11 @@ class MangaSourcesRepository @Inject constructor(
 			settings.hasNewDownloadedSources = true
 		}
 		var maxSortKey = dao.getMaxSortKey()
-		val isAllEnabled = settings.isAllSourcesEnabled
 		val entities = new.map { x ->
 			MangaSourceEntity(
 				source = x.name,
-				isEnabled = isAllEnabled,
+				// Manga Epic: the remaining (curated Arabic) sources are enabled by default.
+				isEnabled = true,
 				sortKey = ++maxSortKey,
 				addedIn = BuildConfig.VERSION_CODE,
 				lastUsedAt = 0,
