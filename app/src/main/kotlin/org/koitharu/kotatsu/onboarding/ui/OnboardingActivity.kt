@@ -1,11 +1,16 @@
 package org.koitharu.kotatsu.onboarding.ui
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Outline
+import android.net.Uri
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
+import android.view.ViewOutlineProvider
 import android.view.View
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -18,18 +23,22 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ColorScheme
-import org.koitharu.kotatsu.core.prefs.StartPage
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
 import org.koitharu.kotatsu.databinding.ActivityOnboardingBinding
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.main.ui.MainActivity
+import java.io.File
 import javax.inject.Inject
 import androidx.appcompat.R as appcompatR
 
 /**
  * Manga Epic first-run wizard, shown once on the first launch:
- * 1) restore from a backup file (or start fresh), 2) choose the start page,
+ * 1) restore from a backup file (or start fresh), 2) set the profile name and picture,
  * 3) choose the colour scheme. Everything stays changeable later in Settings.
  */
 @AndroidEntryPoint
@@ -41,7 +50,6 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 	private var currentStep = STEP_RESTORE
 	private var restorePicked = false
 	private lateinit var appliedScheme: ColorScheme
-	private val startPageIds = HashMap<Int, StartPage>()
 	private val schemeIds = HashMap<Int, ColorScheme>()
 
 	private val restoreCall = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -52,17 +60,26 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 		}
 	}
 
+	private val avatarCall = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+		if (uri != null) {
+			saveAvatar(uri)
+		}
+	}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityOnboardingBinding.inflate(layoutInflater))
 		appliedScheme = settings.colorScheme
 		currentStep = savedInstanceState?.getInt(STATE_STEP) ?: STEP_RESTORE
-		buildStartPageRows()
+		bindProfileStep()
 		buildThemeRows()
 		with(viewBinding) {
 			buttonRestore.setOnClickListener { restoreCall.tryLaunch(arrayOf("*/*")) }
-			buttonNext.setOnClickListener { showStep(STEP_START_PAGE) }
-			buttonNext2.setOnClickListener { showStep(STEP_THEME) }
+			buttonNext.setOnClickListener { showStep(STEP_PROFILE) }
+			buttonNext2.setOnClickListener {
+				saveProfileName()
+				showStep(STEP_THEME)
+			}
 			buttonFinish.setOnClickListener { finishOnboarding() }
 		}
 		onBackPressedDispatcher.addCallback(
@@ -100,12 +117,12 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 	private fun bindStep() {
 		with(viewBinding) {
 			stepRestore.isVisible = currentStep == STEP_RESTORE
-			stepStartPage.isVisible = currentStep == STEP_START_PAGE
+			stepProfile.isVisible = currentStep == STEP_PROFILE
 			stepTheme.isVisible = currentStep == STEP_THEME
 			stepTitle.setText(
 				when (currentStep) {
 					STEP_RESTORE -> R.string.onboarding_welcome_title
-					STEP_START_PAGE -> R.string.start_page
+					STEP_PROFILE -> R.string.profile
 					else -> R.string.color_theme
 				},
 			)
@@ -114,25 +131,50 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 		}
 	}
 
-	private fun buildStartPageRows() {
-		val group = viewBinding.startPageGroup
-		for (page in StartPage.entries) {
-			val titleRes = when (page) {
-				StartPage.DOWNLOADS -> R.string.downloads
-				StartPage.LATEST -> R.string.latest_updates
-				StartPage.FAVORITES -> R.string.favourites
-				StartPage.EXPLORE -> R.string.explore
-				StartPage.PROFILE -> R.string.profile
-			}
-			val radio = newRadioButton(getString(titleRes))
-			startPageIds[radio.id] = page
-			group.addView(radio)
-			if (page == settings.startPage) {
-				group.check(radio.id)
+	private fun bindProfileStep() {
+		val avatar = viewBinding.onboardingAvatar
+		avatar.outlineProvider = object : ViewOutlineProvider() {
+			override fun getOutline(view: View, outline: Outline) {
+				outline.setOval(0, 0, view.width, view.height)
 			}
 		}
-		group.setOnCheckedChangeListener { _, checkedId ->
-			startPageIds[checkedId]?.let { settings.startPage = it }
+		avatar.clipToOutline = true
+		avatar.setOnClickListener { avatarCall.launch("image/*") }
+		viewBinding.onboardingName.setText(settings.profileName)
+		loadAvatar()
+	}
+
+	private fun loadAvatar() {
+		val file = File(filesDir, "profile/avatar.jpg")
+		if (file.exists()) {
+			viewBinding.onboardingAvatar.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+		}
+	}
+
+	private fun saveProfileName() {
+		settings.profileName = viewBinding.onboardingName.text?.toString()?.trim().orEmpty()
+	}
+
+	private fun saveAvatar(uri: Uri) {
+		lifecycleScope.launch(Dispatchers.IO) {
+			runCatching {
+				val source = contentResolver.openInputStream(uri)?.use { input ->
+					BitmapFactory.decodeStream(input)
+				} ?: return@runCatching
+				val size = minOf(source.width, source.height)
+				val cropped = Bitmap.createBitmap(
+					source,
+					(source.width - size) / 2,
+					(source.height - size) / 2,
+					size,
+					size,
+				)
+				val scaled = Bitmap.createScaledBitmap(cropped, AVATAR_SIZE, AVATAR_SIZE, true)
+				val file = File(filesDir, "profile/avatar.jpg")
+				file.parentFile?.mkdirs()
+				file.outputStream().use { out -> scaled.compress(Bitmap.CompressFormat.JPEG, 90, out) }
+			}
+			withContext(Dispatchers.Main) { loadAvatar() }
 		}
 	}
 
@@ -191,8 +233,9 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 
 	private companion object {
 		const val STEP_RESTORE = 1
-		const val STEP_START_PAGE = 2
+		const val STEP_PROFILE = 2
 		const val STEP_THEME = 3
 		const val STATE_STEP = "onboarding_step"
+		const val AVATAR_SIZE = 512
 	}
 }
