@@ -224,7 +224,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewModel.isResumeEnabled.observe(this, this::onResumeEnabledChanged)
 		viewModel.feedCounter.observe(this, ::onFeedCounterChanged)
 		viewModel.appUpdate.observe(this, MenuInvalidator(this))
-		viewModel.onFirstStart.observeEvent(this) { router.showWelcomeSheet() }
+		// Manga Epic: the upstream first-run welcome sheet is removed; the onboarding
+		// wizard covers first-run setup (restore, profile, colour scheme).
 		viewModel.isBottomNavPinned.observe(this, ::setNavbarPinned)
 		settings.observe(AppSettings.KEY_FLOATING_NAV).onEach {
 			viewBinding.root.requestApplyInsets()
