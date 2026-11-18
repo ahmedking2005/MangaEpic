@@ -37,7 +37,9 @@
 
 	</PreferenceCategory>
 
-	<PreferenceCategory android:title="@string/connection">
+	<PreferenceCategory
+		android:key="cat_connection"
+		android:title="@string/connection">
 
 		<PreferenceScreen
 			android:fragment="org.koitharu.kotatsu.settings.ProxySettingsFragment"
@@ -63,7 +65,9 @@
 
 	</PreferenceCategory>
 
-	<PreferenceCategory android:title="@string/troubleshooting">
+	<PreferenceCategory
+		android:key="cat_troubleshooting"
+		android:title="@string/troubleshooting">
 
 		<SwitchPreferenceCompat
 			android:icon="@drawable/ic_lock"
