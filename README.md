@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/logo.jpg" width="180" alt="Manga Epic">
+  <img src="docs/images/logo-round.png" width="180" alt="Manga Epic">
 </p>
 
 <h1 align="center">مانجا إبيك | Manga Epic</h1>
