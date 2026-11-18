@@ -395,6 +395,13 @@
     <string name="onboarding_start_fresh">Start fresh</string>
     <string name="onboarding_finish">Start reading</string>
     <string name="onboarding_step">Step %1$d of %2$d</string>
+    <string name="profile_edit_hint">Tap the picture or the name to edit them</string>
+    <string name="profile_reading_today">Reading time today</string>
+    <string name="profile_this_week">This week</string>
+    <string name="profile_total">Total reading time</string>
+    <string name="profile_name_hint">Your name</string>
+    <string name="profile_default_name">Reader</string>
+    <string name="profile_last_7_days">Last 7 days</string>
     <string name="theme_name_sakura">Sakura</string>
     <string name="theme_name_mamimi">Mamimi</string>
     <string name="theme_name_kanade">Kanade</string>
