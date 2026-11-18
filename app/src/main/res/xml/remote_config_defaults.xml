@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Manga Epic: in-app defaults for Firebase Remote Config. Mirror the console template. -->
+<defaultsMap>
+	<entry>
+		<key>maintenance_mode</key>
+		<value>false</value>
+	</entry>
+	<entry>
+		<key>force_update</key>
+		<value>false</value>
+	</entry>
+	<entry>
+		<key>minimum_supported_build</key>
+		<value>31</value>
+	</entry>
+	<entry>
+		<key>latest_build</key>
+		<value>31</value>
+	</entry>
+	<entry>
+		<key>announcement_enabled</key>
+		<value>false</value>
+	</entry>
+	<entry>
+		<key>announcement_message</key>
+		<value></value>
+	</entry>
+	<entry>
+		<key>enable_sync</key>
+		<value>true</value>
+	</entry>
+	<entry>
+		<key>enable_notifications</key>
+		<value>true</value>
+	</entry>
+</defaultsMap>
