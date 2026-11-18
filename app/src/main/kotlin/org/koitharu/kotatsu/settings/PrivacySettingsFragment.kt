@@ -66,6 +66,17 @@ class PrivacySettingsFragment :
 			communitySettings.isTelemetryEnabled = value == true
 			true
 		}
+		// Manga Epic: the granular per-surface content switches and the community telemetry
+		// toggle are advanced options, revealed by the advanced-settings switch on the root
+		// settings screen. The master NSFW switch and the app-security section stay visible.
+		val advanced = settings.isAdvancedSettingsEnabled
+		findPreference<Preference>(AppSettings.KEY_INCOGNITO_NSFW)?.isVisible = advanced
+		findPreference<Preference>(AppSettings.KEY_TRACKER_NO_NSFW)?.isVisible = advanced
+		findPreference<Preference>(AppSettings.KEY_SUGGESTIONS_EXCLUDE_NSFW)?.isVisible = advanced
+		findPreference<Preference>(AppSettings.KEY_DISCORD_RPC_SKIP_NSFW)?.isVisible = advanced
+		findPreference<Preference>(CommunitySettings.KEY_TELEMETRY)?.isVisible = advanced
+		findPreference<Preference>(AppSettings.KEY_SHORTCUTS_NO_NSFW)?.isVisible =
+			advanced && appShortcutManager.isDynamicShortcutsAvailable()
 	}
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
