@@ -346,6 +346,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isUnstableUpdatesAllowed: Boolean
 		get() = prefs.getBoolean(KEY_UPDATES_UNSTABLE, false)
 
+	/** Manga Epic: advanced options stay hidden until the user turns this on (root settings). */
+	val isAdvancedSettingsEnabled: Boolean
+		get() = prefs.getBoolean(KEY_ADVANCED_SETTINGS, false)
+
 	val isPagesTabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_TAB, true)
 
@@ -943,6 +947,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_APP_LOCALE = "app_locale"
 		const val KEY_SOURCES_GRID = "sources_grid"
 		const val KEY_UPDATES_UNSTABLE = "updates_unstable"
+		const val KEY_ADVANCED_SETTINGS = "advanced_settings"
 		const val KEY_TIPS_CLOSED = "tips_closed"
 		const val KEY_SSL_BYPASS = "ssl_bypass"
 		const val KEY_READER_AUTOSCROLL_SPEED = "as_speed"
