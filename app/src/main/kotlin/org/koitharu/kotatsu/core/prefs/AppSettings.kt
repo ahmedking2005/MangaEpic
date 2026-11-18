@@ -61,15 +61,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_THEME, null)?.toIntOrNull()
 			?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
 
-	val colorScheme: ColorScheme
+	var colorScheme: ColorScheme
 		get() = prefs.getEnumValue(KEY_COLOR_THEME, ColorScheme.default)
+		set(value) = prefs.edit { putEnumValue(KEY_COLOR_THEME, value) }
 
 	val isAmoledTheme: Boolean
 		get() = prefs.getBoolean(KEY_THEME_AMOLED, false)
 
 	var mainNavItems: List<NavItem>
 		get() {
-			migrateNavLayoutV2()
+			migrateNavLayoutV3()
 			val raw = prefs.getString(KEY_NAV_MAIN, null)?.split(',')
 			return if (raw.isNullOrEmpty()) {
 				DEFAULT_NAV_ITEMS
@@ -361,6 +362,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
 		set(value) = prefs.edit { putBoolean(KEY_ONBOARDING_COMPLETED, value) }
 
+	/** Manga Epic: the local profile display name shown on the Profile tab. */
+	var profileName: String
+		get() = prefs.getString(KEY_PROFILE_NAME, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_PROFILE_NAME, value) }
+
 	val isPagesTabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_TAB, true)
 
@@ -588,11 +594,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	 * updates", the sources list took the Explore name, and a Profile tab was added. An existing
 	 * install gets the new layout once; whatever the reader arranges afterwards sticks.
 	 */
-	private fun migrateNavLayoutV2() {
-		if (prefs.getBoolean(KEY_NAV_LAYOUT_V2, false)) {
+	private fun migrateNavLayoutV3() {
+		if (prefs.getBoolean(KEY_NAV_LAYOUT_V3, false)) {
 			return
 		}
-		prefs.edit { putBoolean(KEY_NAV_LAYOUT_V2, true) }
+		prefs.edit { putBoolean(KEY_NAV_LAYOUT_V3, true) }
 		if (prefs.contains(KEY_NAV_MAIN)) {
 			mainNavItems = DEFAULT_NAV_ITEMS
 		}
@@ -975,6 +981,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_UPDATES_UNSTABLE = "updates_unstable"
 		const val KEY_ADVANCED_SETTINGS = "advanced_settings"
 		const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+		const val KEY_PROFILE_NAME = "profile_name"
 		const val KEY_TIPS_CLOSED = "tips_closed"
 		const val KEY_SSL_BYPASS = "ssl_bypass"
 		const val KEY_READER_AUTOSCROLL_SPEED = "as_speed"
@@ -993,9 +1000,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_RELATED_MANGA = "related_manga"
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_START_PAGE = "start_page"
-		private const val KEY_NAV_LAYOUT_V2 = "nav_layout_v2"
+		private const val KEY_NAV_LAYOUT_V3 = "nav_layout_v3"
 		private val DEFAULT_NAV_ITEMS = listOf(
-			NavItem.EXPLORE, NavItem.LOCAL, NavItem.FAVORITES, NavItem.HISTORY, NavItem.SUGGESTIONS, NavItem.PROFILE,
+			NavItem.EXPLORE, NavItem.LOCAL, NavItem.FAVORITES, NavItem.SOURCES, NavItem.SUGGESTIONS, NavItem.HISTORY,
 		)
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"
