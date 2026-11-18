@@ -367,6 +367,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_PROFILE_NAME, "").orEmpty()
 		set(value) = prefs.edit { putString(KEY_PROFILE_NAME, value) }
 
+	/** Manga Epic: the current FCM registration token (uploaded to user_devices after sign-in). */
+	var fcmToken: String
+		get() = prefs.getString(KEY_FCM_TOKEN, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_FCM_TOKEN, value) }
+
+	/** Manga Epic: the last Remote Config announcement text already shown to the user. */
+	var lastAnnouncement: String
+		get() = prefs.getString(KEY_LAST_ANNOUNCEMENT, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_LAST_ANNOUNCEMENT, value) }
+
 	val isPagesTabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_PAGES_TAB, true)
 
@@ -1033,6 +1043,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_VERSION = "sources_version"
 		const val KEY_SOURCES_ENABLED_ALL = "sources_enabled_all"
 		const val KEY_REMAINING_SOURCES_ENABLED = "remaining_sources_enabled_v1"
+		const val KEY_FCM_TOKEN = "fcm_token"
+		const val KEY_LAST_ANNOUNCEMENT = "last_announcement"
 		const val KEY_SOURCES_NEW_DOWNLOADED = "sources_new_downloaded"
 		const val KEY_PARSERS_AUTO_UPDATE = "parsers_auto_update"
 		const val KEY_QUICK_FILTER = "quick_filter"
