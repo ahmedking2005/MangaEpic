@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.discover.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -46,7 +45,7 @@ import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
 import org.koitharu.kotatsu.core.util.progress.IntPercentLabelFormatter
 import org.koitharu.kotatsu.databinding.FragmentDiscoverBinding
 import org.koitharu.kotatsu.discover.domain.DiscoverWindow
-import org.koitharu.kotatsu.explore.ui.SourcesActivity
+import org.koitharu.kotatsu.main.ui.MainActivity
 import org.koitharu.kotatsu.list.ui.adapter.ListItemType
 import org.koitharu.kotatsu.list.ui.adapter.ListStateHolderListener
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
@@ -300,8 +299,9 @@ class DiscoverFragment :
 		}
 
 		override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
-			R.id.action_by_source -> {
-				startActivity(Intent(requireContext(), SourcesActivity::class.java))
+			R.id.action_profile -> {
+				// Manga Epic: the top-bar action opens the Profile tab instead of the sources list.
+				(requireActivity() as? MainActivity)?.openProfile()
 				true
 			}
 
