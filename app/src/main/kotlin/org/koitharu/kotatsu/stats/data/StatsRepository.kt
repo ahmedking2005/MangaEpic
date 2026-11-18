@@ -12,6 +12,11 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.stats.domain.StatsPeriod
 import org.koitharu.kotatsu.stats.domain.StatsRecord
+import org.koitharu.kotatsu.core.util.ext.toMillis
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.NavigableMap
 import java.util.TreeMap
 import java.util.concurrent.TimeUnit
@@ -48,6 +53,30 @@ class StatsRepository @Inject constructor(
 			result += other
 		}
 		return result
+	}
+
+	/** Manga Epic (profile): all-time reading duration in milliseconds. */
+	suspend fun getTotalDuration(): Long = db.getStatsDao().getTotalDuration()
+
+	/** Manga Epic (profile): chapters read across all manga in history. */
+	suspend fun getTotalChaptersRead(): Int = db.getHistoryDao().getTotalChaptersRead()
+
+	/** Manga Epic (profile): reading duration per local day for the last [days] days, oldest first. */
+	suspend fun getDailyDurations(days: Int): List<Long> {
+		val today = LocalDate.now()
+		val firstDay = today.minusDays((days - 1).toLong())
+		val sessions = db.getStatsDao().getSessionsSince(firstDay.toMillis())
+		val byDay = LongArray(days)
+		for (session in sessions) {
+			val date = Instant.ofEpochMilli(session.startedAt)
+				.atZone(ZoneId.systemDefault())
+				.toLocalDate()
+			val index = ChronoUnit.DAYS.between(firstDay, date).toInt()
+			if (index in byDay.indices) {
+				byDay[index] += session.duration
+			}
+		}
+		return byDay.toList()
 	}
 
 	suspend fun getTimePerPage(mangaId: Long): Long = db.withTransaction {
