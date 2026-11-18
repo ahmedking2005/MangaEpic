@@ -66,6 +66,10 @@ class ReaderSettingsFragment :
 			summaryProvider = MultiSummaryProvider(R.string.disabled)
 		}
 		findPreference<SliderPreference>(AppSettings.KEY_WEBTOON_ZOOM_OUT)?.summaryProvider = PercentSummaryProvider()
+		// Manga Epic: fine-tuning and behaviour switches live in the Advanced category,
+		// revealed by the advanced-settings switch on the root settings screen. The useful
+		// ones stay enabled by default; this screen keeps only the core reading choices.
+		findPreference<Preference>("cat_reader_advanced")?.isVisible = settings.isAdvancedSettingsEnabled
 		updateReaderModeDependency()
 	}
 
