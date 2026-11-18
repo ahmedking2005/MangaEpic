@@ -59,18 +59,42 @@
 		</LinearLayout>
 
 		<LinearLayout
-			android:id="@+id/stepStartPage"
+			android:id="@+id/stepProfile"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:layout_marginTop="16dp"
 			android:orientation="vertical"
 			android:visibility="gone">
 
-			<RadioGroup
-				android:id="@+id/startPageGroup"
+			<ImageView
+				android:id="@+id/onboardingAvatar"
+				android:layout_width="112dp"
+				android:layout_height="112dp"
+				android:layout_gravity="center_horizontal"
+				android:contentDescription="@string/profile"
+				android:src="@drawable/ic_profile_checked" />
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="4dp"
+				android:text="@string/profile_edit_hint"
+				android:textAppearance="?attr/textAppearanceBodySmall" />
+
+			<com.google.android.material.textfield.TextInputLayout
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				android:orientation="vertical" />
+				android:layout_marginTop="16dp"
+				android:hint="@string/profile_name_hint">
+
+				<com.google.android.material.textfield.TextInputEditText
+					android:id="@+id/onboardingName"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:inputType="textPersonName"
+					android:maxLines="1" />
+			</com.google.android.material.textfield.TextInputLayout>
 
 			<com.google.android.material.button.MaterialButton
 				android:id="@+id/buttonNext2"
