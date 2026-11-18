@@ -83,6 +83,13 @@ class AppearanceSettingsFragment :
             pref.values = settings.searchSuggestionTypes.mapToSet { it.name }
         }
         bindNavSummary()
+        // Manga Epic: everything beyond the colour scheme, theme, language and list mode
+        // lives in the Advanced category, revealed by the advanced-settings switch on the
+        // root settings screen. The useful options stay enabled by default.
+        val advanced = settings.isAdvancedSettingsEnabled
+        findPreference<Preference>("cat_appearance_advanced")?.isVisible = advanced
+        findPreference<Preference>(AppSettings.KEY_SHORTCUTS)?.isVisible =
+            advanced && appShortcutManager.isDynamicShortcutsAvailable()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
