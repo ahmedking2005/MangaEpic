@@ -11,8 +11,8 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import com.google.android.material.color.MaterialColors
 import dagger.hilt.android.AndroidEntryPoint
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.nav.router
@@ -20,11 +20,12 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.ColorScheme
 import org.koitharu.kotatsu.core.prefs.StartPage
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
 import org.koitharu.kotatsu.databinding.ActivityOnboardingBinding
 import org.koitharu.kotatsu.main.ui.MainActivity
 import javax.inject.Inject
-import com.google.android.material.R as materialR
+import androidx.appcompat.R as appcompatR
 
 /**
  * Manga Epic first-run wizard, shown once on the first launch:
@@ -85,6 +86,12 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 		outState.putInt(STATE_STEP, currentStep)
 	}
 
+	override fun onApplyWindowInsets(v: View, insets: WindowInsetsCompat): WindowInsetsCompat {
+		val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+		viewBinding.root.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+		return insets
+	}
+
 	private fun showStep(step: Int) {
 		currentStep = step
 		bindStep()
@@ -137,7 +144,7 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 		for (scheme in ColorScheme.getAvailableList()) {
 			val radio = newRadioButton(getString(scheme.titleResId))
 			val wrapped = ContextThemeWrapper(this, scheme.styleResId)
-			val primary = MaterialColors.getColor(wrapped, materialR.attr.colorPrimary, Color.GRAY)
+			val primary = wrapped.getThemeColor(appcompatR.attr.colorPrimary, Color.GRAY)
 			val circle = GradientDrawable().apply {
 				shape = GradientDrawable.OVAL
 				setColor(primary)
@@ -160,20 +167,20 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
 		}
 	}
 
-	private fun newRadioButton(text: String): RadioButton {
-		return RadioButton(this).apply {
-			id = View.generateViewId()
-			this.text = text
-			layoutParams = RadioGroup.LayoutParams(
-				RadioGroup.LayoutParams.MATCH_PARENT,
-				RadioGroup.LayoutParams.WRAP_CONTENT,
-			)
-			val vertical = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics,
-			).toInt()
-			setPadding(paddingStart, vertical, paddingEnd, vertical)
-			textSize = 16f
-		}
+	private fun newRadioButton(label: String): RadioButton {
+		val radio = RadioButton(this)
+		radio.id = View.generateViewId()
+		radio.setText(label)
+		radio.layoutParams = RadioGroup.LayoutParams(
+			RadioGroup.LayoutParams.MATCH_PARENT,
+			RadioGroup.LayoutParams.WRAP_CONTENT,
+		)
+		val vertical = TypedValue.applyDimension(
+			TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics,
+		).toInt()
+		radio.setPadding(radio.paddingStart, vertical, radio.paddingEnd, vertical)
+		radio.textSize = 16f
+		return radio
 	}
 
 	private fun finishOnboarding() {
