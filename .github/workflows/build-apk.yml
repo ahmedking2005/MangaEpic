@@ -45,11 +45,7 @@ jobs:
         run: |
           UNSIGNED=$(ls app/build/outputs/apk/release/*-unsigned.apk | head -n 1)
           echo "Unsigned APK: $UNSIGNED"
-          keytool -genkeypair -v \
-            -keystore "$RUNNER_TEMP/release.keystore" \
-            -alias kotatsu-arabic -keyalg RSA -keysize 2048 -validity 3650 \
-            -storepass android -keypass android \
-            -dname "CN=Kotatsu Arabic, O=Personal, C=EG"
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
           BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/35.0.0)
           "$BUILD_TOOLS/zipalign" -p -f 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
           "$BUILD_TOOLS/apksigner" sign \
