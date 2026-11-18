@@ -10,6 +10,8 @@ plugins {
 	id 'org.jetbrains.kotlin.plugin.serialization'
 	id 'org.jetbrains.kotlin.plugin.compose'
 	id 'io.sentry.android.gradle'
+	id 'com.google.gms.google-services'
+	id 'com.google.firebase.crashlytics'
 	// enable if needed
 	// id 'dev.reformator.stacktracedecoroutinator'
 }
@@ -235,6 +237,11 @@ dependencies {
 	}
 
 	coreLibraryDesugaring libs.desugar.jdk.libs
+
+	// Manga Epic: Firebase Analytics + Crashlytics (project "manga-epic")
+	implementation platform(libs.firebase.bom)
+	implementation libs.firebase.analytics
+	implementation libs.firebase.crashlytics
 	implementation libs.kotlin.stdlib
 	implementation libs.kotlinx.coroutines.android
 	implementation libs.kotlinx.coroutines.guava
