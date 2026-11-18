@@ -75,6 +75,7 @@ import org.koitharu.kotatsu.history.ui.HistoryListFragment
 import org.koitharu.kotatsu.local.ui.LocalIndexUpdateService
 import org.koitharu.kotatsu.local.ui.LocalStorageCleanupWorker
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
+import org.koitharu.kotatsu.onboarding.ui.OnboardingActivity
 import org.koitharu.kotatsu.main.ui.owners.BottomNavOwner
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.remotelist.ui.MangaSearchMenuProvider
@@ -145,6 +146,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		// Manga Epic: first-run onboarding wizard (restore, start page, colour scheme)
+		if (savedInstanceState == null && !settings.isOnboardingCompleted) {
+			startActivity(Intent(this, OnboardingActivity::class.java))
+			finish()
+			return
+		}
 		setContentView(ActivityMainBinding.inflate(layoutInflater))
 		setSupportActionBar(viewBinding.searchBar)
 		// What the floating bar covers reaches the lists as part of the bottom inset. See updateContainerBottomMargin
