@@ -144,6 +144,11 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 			shape = GradientDrawable.OVAL
 			setStroke((4 * density).toInt(), primary)
 		}
+		// Manga Epic: an explicit way out of the immersive page — the bottom bar is
+		// hidden here, so the page carries its own close button over the banner.
+		view.findViewById<View>(R.id.closeButton).setOnClickListener {
+			requireActivity().onBackPressedDispatcher.onBackPressed()
+		}
 		val avatarView = view.findViewById<ImageView>(R.id.avatarView)
 		avatarView.outlineProvider = object : ViewOutlineProvider() {
 			override fun getOutline(view: View, outline: Outline) {
