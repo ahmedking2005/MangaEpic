@@ -27,6 +27,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.databinding.FragmentReaderNovelBinding
 import org.koitharu.kotatsu.reader.ui.ReaderState
+import org.koitharu.kotatsu.reader.ui.pager.BasePageHolder
 import org.koitharu.kotatsu.reader.ui.pager.BaseReaderFragment
 import java.io.FilterInputStream
 import java.net.URI
@@ -806,6 +807,10 @@ class NovelReaderFragment : BaseReaderFragment<FragmentReaderNovelBinding>(),
 			scroll = currentChapterScroll.coerceAtLeast(0),
 		)
 	}
+
+	// Novel chapters render as one continuous WebView document, so there is no page
+	// holder under any point (the page-erase tool in ReaderActivity has no target here).
+	override fun findPageHolderAt(rawX: Int, rawY: Int): BasePageHolder<*>? = null
 
 	override fun onZoomIn() {
 		settings.novelFontSize = (settings.novelFontSize + 2).coerceAtMost(40)
