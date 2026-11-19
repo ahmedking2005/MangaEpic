@@ -10,6 +10,8 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.MenuProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
@@ -81,6 +83,12 @@ class DiscoverFragment :
 
 	@Inject
 	lateinit var settings: AppSettings
+
+	@Inject
+	lateinit var supabase: org.koitharu.kotatsu.cloud.SupabaseClient
+
+	@Inject
+	lateinit var coil: coil3.ImageLoader
 
 	private val viewModel by viewModels<DiscoverViewModel>()
 	private var pages: List<RecyclerView> = emptyList()
@@ -296,6 +304,29 @@ class DiscoverFragment :
 
 		override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
 			menuInflater.inflate(R.menu.opt_discover, menu)
+		}
+
+		override fun onPrepareMenu(menu: Menu) {
+			// Manga Epic: the profile action wears the user's own picture (like the
+			// reference app) instead of the generic person icon.
+			val item = menu.findItem(R.id.action_profile) ?: return
+			val url = if (supabase.isSignedIn) supabase.userAvatarUrl else ""
+			if (url.isNotBlank()) {
+				viewLifecycleOwner.lifecycleScope.launch {
+					val bmp = org.koitharu.kotatsu.profile.ProfileAvatar
+						.remoteBitmap(requireContext(), coil, url)
+					if (bmp != null) {
+						item.icon = org.koitharu.kotatsu.profile.ProfileAvatar
+							.roundDrawable(requireContext(), bmp)
+					}
+				}
+			} else {
+				org.koitharu.kotatsu.profile.ProfileAvatar.localBitmap(requireContext())
+					?.let { bmp ->
+						item.icon = org.koitharu.kotatsu.profile.ProfileAvatar
+							.roundDrawable(requireContext(), bmp)
+					}
+			}
 		}
 
 		override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
