@@ -402,6 +402,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getLong(KEY_SUPABASE_TOKEN_EXPIRES_AT, 0L)
 		set(value) = prefs.edit { putLong(KEY_SUPABASE_TOKEN_EXPIRES_AT, value) }
 
+	/** Manga Epic: temporary PKCE verifier held only while a Google sign-in is in flight. */
+	var supabasePkceVerifier: String
+		get() = prefs.getString(KEY_SUPABASE_PKCE_VERIFIER, "") ?: ""
+		set(value) = prefs.edit { putString(KEY_SUPABASE_PKCE_VERIFIER, value) }
+
 	/** Manga Epic: epoch millis of the last successful library sync (0 = never). */
 	var lastSyncAt: Long
 		get() = prefs.getLong(KEY_LAST_SYNC_AT, 0L)
@@ -1081,6 +1086,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SUPABASE_USER_EMAIL = "supabase_user_email"
 		const val KEY_SUPABASE_TOKEN_EXPIRES_AT = "supabase_token_expires_at"
 		const val KEY_LAST_SYNC_AT = "last_sync_at"
+		const val KEY_SUPABASE_PKCE_VERIFIER = "supabase_pkce_verifier"
 		const val KEY_SOURCES_NEW_DOWNLOADED = "sources_new_downloaded"
 		const val KEY_PARSERS_AUTO_UPDATE = "parsers_auto_update"
 		const val KEY_QUICK_FILTER = "quick_filter"
