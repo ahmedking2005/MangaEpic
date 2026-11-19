@@ -29,7 +29,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import coil3.ImageLoader
+import coil3.request.ImageRequest
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.core.util.ext.enqueueWith
 import org.koitharu.kotatsu.cloud.LibrarySync
 import org.koitharu.kotatsu.cloud.SupabaseClient
 import org.koitharu.kotatsu.cloud.ui.AccountActivity
@@ -62,13 +65,21 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 	@Inject
 	lateinit var librarySync: LibrarySync
 
+	@Inject
+	lateinit var coil: ImageLoader
+
+	@Inject
+	lateinit var syncScheduler: org.koitharu.kotatsu.cloud.LibrarySyncWorker.Scheduler
+
 	private val viewModel by viewModels<ProfileViewModel>()
 
 	private val accountLauncher = registerForActivityResult(
 		ActivityResultContracts.StartActivityForResult(),
 	) {
 		bindAccount()
+		view?.let { bindProfile(it) }
 		if (supabase.isSignedIn) {
+			syncScheduler.schedule()
 			runSync()
 		}
 	}
@@ -103,8 +114,16 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 			}
 		}
 		avatarView.clipToOutline = true
-		avatarView.setOnClickListener { avatarPicker.launch("image/*") }
-		view.findViewById<TextView>(R.id.nameView).setOnClickListener { showNameDialog() }
+		avatarView.setOnClickListener {
+			if (!supabase.isSignedIn) {
+				avatarPicker.launch("image/*")
+			}
+		}
+		view.findViewById<TextView>(R.id.nameView).setOnClickListener {
+			if (!supabase.isSignedIn) {
+				showNameDialog()
+			}
+		}
 		bindProfile(view)
 		bindAccount(view)
 		val todayValue = view.findViewById<TextView>(R.id.todayValue)
@@ -194,6 +213,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 						lifecycleScope.launch {
 							supabase.signOut()
 							bindAccount()
+							view?.let { bindProfile(it) }
 						}
 					}
 					.setNegativeButton(android.R.string.cancel, null)
@@ -229,11 +249,42 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 	}
 
 	private fun bindProfile(view: View) {
-		val name = settings.profileName
-		view.findViewById<TextView>(R.id.nameView).text = name.ifBlank {
-			getString(R.string.profile_default_name)
-		}
+		val nameView = view.findViewById<TextView>(R.id.nameView)
 		val avatarView = view.findViewById<ImageView>(R.id.avatarView)
+		val identityView = view.findViewById<TextView>(R.id.identityView)
+		val hintView = view.findViewById<TextView>(R.id.editHintView)
+		if (supabase.isSignedIn) {
+			// Manga Epic: while signed in, the header IS the account — the name, the
+			// @handle, the e-mail and the photo come from the provider (e.g. Google)
+			// and disappear again on sign-out, when the local profile returns.
+			nameView.text = supabase.userName
+				.ifBlank { supabase.userEmail.substringBefore('@') }
+				.ifBlank { getString(R.string.profile_default_name) }
+			identityView.text = "@${supabase.userHandle}\n${supabase.userEmail}"
+			identityView.visibility = View.VISIBLE
+			hintView.visibility = View.GONE
+			val avatarUrl = supabase.userAvatarUrl
+			if (avatarUrl.isNotBlank()) {
+				ImageRequest.Builder(requireContext())
+					.data(avatarUrl)
+					.target(avatarView)
+					.placeholder(R.drawable.ic_profile_checked)
+					.error(R.drawable.ic_profile_checked)
+					.enqueueWith(coil)
+			} else {
+				bindLocalAvatar(avatarView)
+			}
+		} else {
+			identityView.visibility = View.GONE
+			hintView.visibility = View.VISIBLE
+			nameView.text = settings.profileName.ifBlank {
+				getString(R.string.profile_default_name)
+			}
+			bindLocalAvatar(avatarView)
+		}
+	}
+
+	private fun bindLocalAvatar(avatarView: ImageView) {
 		val file = avatarFile()
 		if (file.exists()) {
 			avatarView.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
