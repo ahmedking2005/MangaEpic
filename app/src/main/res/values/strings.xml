@@ -1337,9 +1337,6 @@ Optional — skip it and you appear as anon.</string>
 	<string name="next_episode">Next episode</string>
 	<string name="novel_continuous_scroll">Continuous chapters</string>
 	<string name="novel_reader_settings">Novel reader settings</string>
-	<string name="optional_anime_ad_message">Would you like to view an ad before this episode starts? This is completely optional, and you can play the episode immediately without an ad.</string>
-	<string name="optional_anime_ad_title">Optional ad</string>
-	<string name="play_now">Play now</string>
 	<string name="player_auto_next">Play next episode automatically</string>
 	<string name="player_controls_locked">Controls locked</string>
 	<string name="player_display_fill">Fill</string>
@@ -1372,6 +1369,5 @@ Optional — skip it and you appear as anon.</string>
 	<string name="theme_normal">Light</string>
 	<string name="theme_pink">Pink</string>
 	<string name="watch">Watch</string>
-	<string name="watch_ad">View ad</string>
 	<string name="cancel">Cancel</string>
 </resources>
