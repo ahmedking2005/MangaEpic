@@ -22,8 +22,6 @@ import com.google.android.material.button.MaterialSplitButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.combine
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.anime.player.AnimePlayerActivity
-import org.koitharu.kotatsu.core.model.isAnime
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.ReaderIntent
@@ -107,23 +105,13 @@ class ReadButtonDelegate(
 		MenuCompat.setGroupDividerEnabled(menu, true)
 		menu.populateBranchList()
 		val history = viewModel.historyInfo.value
-		val isAnime = viewModel.getMangaOrNull()?.isAnime == true
-		menu.findItem(R.id.action_incognito)?.isVisible = !isAnime && !history.isIncognitoMode
+		menu.findItem(R.id.action_incognito)?.isVisible = !history.isIncognitoMode
 		menu.findItem(R.id.action_forget)?.isVisible = history.history != null
 		menu.findItem(R.id.action_download)?.isVisible = viewModel.getMangaOrNull()?.isLocal == false
 	}
 
 	private fun openReader(isIncognitoMode: Boolean) {
 		val manga = viewModel.getMangaOrNull() ?: return
-		if (manga.isAnime) {
-			val history = viewModel.historyInfo.value.history
-			val episode = manga.chapters.orEmpty().firstOrNull { it.id == history?.chapterId }
-				?: manga.chapters.orEmpty().firstOrNull()
-				?: return
-			val startPosition = history?.scroll?.takeIf { history.chapterId == episode.id }?.toLong() ?: 0L
-			AnimePlayerActivity.start(context, manga, episode, startPosition)
-			return
-		}
 		if (viewModel.historyInfo.value.isChapterMissing) {
 			Snackbar.make(buttonRead, R.string.chapter_is_missing, Snackbar.LENGTH_SHORT)
 				.show() // TODO
@@ -143,12 +131,9 @@ class ReadButtonDelegate(
 
 	private fun onHistoryChanged(isLoading: Boolean, info: HistoryInfo) {
 		val isChaptersLoading = isLoading && (info.totalChapters <= 0 || info.isChapterMissing)
-		val isAnime = viewModel.getMangaOrNull()?.isAnime == true
 		buttonRead.text = when {
 			isChaptersLoading -> context.getString(R.string.loading_)
 			info.isIncognitoMode -> context.getString(R.string.incognito)
-			isAnime && info.canContinue -> context.getString(R.string.continue_watching)
-			isAnime -> context.getString(R.string.watch)
 			info.canContinue -> getContinueLabel(info)
 			else -> context.getString(R.string.read)
 		}

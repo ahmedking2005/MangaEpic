@@ -24,7 +24,6 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.NovelChapterContent
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import java.lang.ref.WeakReference
 import javax.inject.Inject
@@ -51,8 +50,6 @@ interface MangaRepository {
 	suspend fun getFilterOptions(): MangaListFilterOptions
 
 	suspend fun getRelated(seed: Manga): List<Manga>
-
-	suspend fun getNovelContent(chapter: MangaChapter): NovelChapterContent? = null
 
 	suspend fun find(manga: Manga): Manga? {
 		val list = getList(0, SortOrder.RELEVANCE, MangaListFilter(query = manga.title))

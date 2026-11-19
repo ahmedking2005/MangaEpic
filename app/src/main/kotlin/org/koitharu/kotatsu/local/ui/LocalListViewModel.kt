@@ -151,7 +151,7 @@ class LocalListViewModel @Inject constructor(
 		super.createEmptyState(true)
 	} else {
 		EmptyState(
-			icon = R.drawable.img_empty_local,
+			icon = R.drawable.ic_empty_local,
 			textPrimary = R.string.text_local_holder_primary,
 			textSecondary = R.string.text_local_holder_secondary,
 			actionStringRes = R.string._import,

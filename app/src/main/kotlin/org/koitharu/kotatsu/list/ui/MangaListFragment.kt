@@ -79,7 +79,6 @@ abstract class MangaListFragment :
 	private var spanResolver: GridSpanResolver? = null
 	private val spanSizeLookup = SpanSizeLookup()
 	open val isSwipeRefreshEnabled = true
-	protected open val showNativeAds = false
 
 	protected abstract val viewModel: MangaListViewModel
 
@@ -222,7 +221,6 @@ abstract class MangaListFragment :
 		return MangaListAdapter(
 			listener = this,
 			sizeResolver = DynamicItemSizeResolver(resources, viewLifecycleOwner, settings, adjustWidth = false),
-			showNativeAds = showNativeAds,
 		)
 	}
 

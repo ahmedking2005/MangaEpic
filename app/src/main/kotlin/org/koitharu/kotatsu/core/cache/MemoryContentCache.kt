@@ -7,7 +7,6 @@ import org.koitharu.kotatsu.core.util.ext.isLowRamDevice
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.NovelChapterContent
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,8 +21,6 @@ class MemoryContentCache @Inject constructor(application: Application) : Compone
 		ExpiringLruCache<SafeDeferred<List<MangaPage>>>(if (isLowRam) 1 else 4, 10, TimeUnit.MINUTES)
 	private val relatedMangaCache =
 		ExpiringLruCache<SafeDeferred<List<Manga>>>(if (isLowRam) 1 else 3, 10, TimeUnit.MINUTES)
-	private val novelContentCache =
-		ExpiringLruCache<SafeDeferred<NovelChapterContent>>(if (isLowRam) 1 else 2, 10, TimeUnit.MINUTES)
 
 	init {
 		application.registerComponentCallbacks(this)
@@ -53,19 +50,10 @@ class MemoryContentCache @Inject constructor(application: Application) : Compone
 		relatedMangaCache[Key(source, url)] = related
 	}
 
-	suspend fun getNovelContent(source: MangaSource, url: String): NovelChapterContent? {
-		return novelContentCache[Key(source, url)]?.awaitOrNull()
-	}
-
-	fun putNovelContent(source: MangaSource, url: String, content: SafeDeferred<NovelChapterContent>) {
-		novelContentCache[Key(source, url)] = content
-	}
-
 	fun clear(source: MangaSource) {
 		clearCache(detailsCache, source)
 		clearCache(pagesCache, source)
 		clearCache(relatedMangaCache, source)
-		clearCache(novelContentCache, source)
 	}
 
 	override fun onConfigurationChanged(newConfig: Configuration) = Unit
@@ -76,7 +64,6 @@ class MemoryContentCache @Inject constructor(application: Application) : Compone
 		trimCache(detailsCache, level)
 		trimCache(pagesCache, level)
 		trimCache(relatedMangaCache, level)
-		trimCache(novelContentCache, level)
 	}
 
 	private fun trimCache(cache: ExpiringLruCache<*>, level: Int) {

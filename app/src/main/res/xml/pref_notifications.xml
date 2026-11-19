@@ -41,7 +41,7 @@
 		app:isPreferenceVisible="false" />
 
 	<SwitchPreferenceCompat
-		android:defaultValue="true"
+		android:defaultValue="false"
 		android:icon="@drawable/ic_suggestion"
 		android:key="suggestions_notifications"
 		android:summary="@string/suggestions_notifications_summary"

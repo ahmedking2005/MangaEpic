@@ -81,7 +81,7 @@ class FeedViewModel @Inject constructor(
 		}
 		if (list.isEmpty()) {
 			result += EmptyState(
-				icon = R.drawable.img_empty_feed,
+				icon = R.drawable.ic_empty_feed,
 				textPrimary = R.string.text_empty_holder_primary,
 				textSecondary = R.string.text_feed_holder,
 				actionStringRes = 0,

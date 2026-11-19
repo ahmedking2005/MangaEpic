@@ -17,8 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.anime.player.AnimePlayerActivity
-import org.koitharu.kotatsu.core.model.isAnime
 import org.koitharu.kotatsu.core.nav.ReaderIntent
 import org.koitharu.kotatsu.core.nav.dismissParentDialog
 import org.koitharu.kotatsu.core.nav.router
@@ -76,7 +74,7 @@ class ChaptersFragment :
 			callback = ChaptersSelectionCallback(viewModel, router, binding.recyclerViewChapters),
 		)
 		viewModel.isChaptersInGridView.observe(viewLifecycleOwner) { chaptersInGridView ->
-			binding.recyclerViewChapters.layoutManager = if (chaptersInGridView && !viewModel.isNovelContent) {
+			binding.recyclerViewChapters.layoutManager = if (chaptersInGridView) {
 				GridLayoutManager(context, ChapterGridSpanHelper.getSpanCount(binding.recyclerViewChapters)).apply {
 					spanSizeLookup = ChapterGridSpanHelper.SpanSizeLookup(binding.recyclerViewChapters)
 				}
@@ -114,23 +112,13 @@ class ChaptersFragment :
 		if (selectionController?.onItemClick(item.chapter.id) == true) {
 			return
 		}
-		val manga = viewModel.getMangaOrNull() ?: return
-		if (manga.isAnime) {
-			val readingState = viewModel.readingState.value
-			val startPosition = readingState?.scroll
-				?.takeIf { readingState.chapterId == item.chapter.id }
-				?.toLong()
-				?: 0L
-			AnimePlayerActivity.start(view.context, manga, item.chapter, startPosition)
-			return
-		}
 		val listener = findParentCallback(ReaderNavigationCallback::class.java)
 		if (listener != null && listener.onChapterSelected(item.chapter)) {
 			dismissParentDialog()
 		} else {
 			router.openReader(
 				ReaderIntent.Builder(view.context)
-					.manga(manga)
+					.manga(viewModel.getMangaOrNull() ?: return)
 					.state(ReaderState(item.chapter.id, 0, 0))
 					.build(),
 			)

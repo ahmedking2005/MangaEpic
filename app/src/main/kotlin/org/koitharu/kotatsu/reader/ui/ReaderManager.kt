@@ -14,7 +14,6 @@ import org.koitharu.kotatsu.reader.ui.pager.reversed.ReversedReaderFragment
 import org.koitharu.kotatsu.reader.ui.pager.standard.PagerReaderFragment
 import org.koitharu.kotatsu.reader.ui.pager.vertical.VerticalReaderFragment
 import org.koitharu.kotatsu.reader.ui.pager.webtoon.WebtoonReaderFragment
-import org.koitharu.kotatsu.reader.ui.novel.NovelReaderFragment
 import java.util.EnumMap
 
 class ReaderManager(
@@ -70,7 +69,6 @@ class ReaderManager(
 		}
 		modeMap[ReaderMode.WEBTOON] = WebtoonReaderFragment::class.java
 		modeMap[ReaderMode.VERTICAL] = VerticalReaderFragment::class.java
-		modeMap[ReaderMode.NOVEL] = NovelReaderFragment::class.java
 	}
 
 	private fun isLandscape() = container.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE

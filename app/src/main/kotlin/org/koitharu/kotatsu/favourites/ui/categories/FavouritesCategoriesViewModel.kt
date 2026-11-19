@@ -99,7 +99,7 @@ class FavouritesCategoriesViewModel @Inject constructor(
 		if (isEmpty()) {
 			return listOf(
 				EmptyState(
-					icon = R.drawable.img_empty_favourites,
+					icon = R.drawable.ic_empty_favourites,
 					textPrimary = R.string.text_empty_holder_primary,
 					textSecondary = R.string.empty_favourite_categories,
 					actionStringRes = 0,

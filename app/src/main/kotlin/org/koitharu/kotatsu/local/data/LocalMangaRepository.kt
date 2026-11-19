@@ -17,10 +17,8 @@ import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.AlphanumComparator
 import org.koitharu.kotatsu.core.util.ext.deleteAwait
-import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.takeIfWriteable
-import org.koitharu.kotatsu.core.util.ext.toFileOrNull
 import org.koitharu.kotatsu.core.util.ext.withChildren
 import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
 import org.koitharu.kotatsu.local.data.input.LocalMangaParser
@@ -36,7 +34,6 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.NovelChapterContent
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.parsers.util.mapToSet
@@ -142,38 +139,6 @@ class LocalMangaRepository @Inject constructor(
 		return LocalMangaParser(chapter.url.toUri()).getPages(chapter)
 	}
 
-	override suspend fun getNovelContent(chapter: MangaChapter): NovelChapterContent? {
-		val page = getPages(chapter).firstOrNull { page ->
-			val path = page.url.substringBefore('?').substringBefore('#')
-			val fragment = page.url.substringAfter('#', missingDelimiterValue = path)
-			fragment.endsWith(".html", ignoreCase = true) || fragment.endsWith(".htm", ignoreCase = true)
-		} ?: return null
-		val html = runInterruptible(Dispatchers.IO) {
-			val uri = page.url.toUri()
-			if (uri.isZipUri()) {
-				val zipPath = uri.schemeSpecificPart.removePrefix("//")
-				val entryName = uri.fragment
-				if (zipPath.isEmpty() || entryName.isNullOrEmpty()) {
-					return@runInterruptible ""
-				}
-				java.util.zip.ZipFile(zipPath).use { zip ->
-					zip.getEntry(entryName)?.let { entry ->
-						zip.getInputStream(entry).bufferedReader(Charsets.UTF_8).use { it.readText() }
-					}.orEmpty()
-				}
-			} else {
-				sequenceOf(File(uri.schemeSpecificPart), uri.path?.let(::File))
-					.filterNotNull()
-					.firstOrNull { it.exists() && it.canRead() }
-					?.readText(Charsets.UTF_8)
-					.orEmpty()
-			}
-		}
-		return html.takeIf { it.isNotEmpty() }?.let {
-			NovelChapterContent(html = it, images = emptyList())
-		}
-	}
-
 	suspend fun delete(manga: Manga): Boolean {
 		val file = manga.url.toUri().toFile()
 		val result = file.deleteAwait()
@@ -234,25 +199,6 @@ class LocalMangaRepository @Inject constructor(
 	}.onFailure {
 		it.printStackTraceDebug()
 	}.getOrNull()
-
-	suspend fun findDownloadedEpisodeFile(remoteManga: Manga, episodeId: Long): File? {
-		val localManga = if (remoteManga.isLocal) {
-			remoteManga
-		} else {
-			findSavedManga(remoteManga, withDetails = true)?.manga ?: return null
-		}
-		val localChapter = localManga.chapters?.firstOrNull { it.id == episodeId } ?: return null
-		val root = localManga.url.toUri().toFile()
-		val chapterUri = localChapter.url.toUri()
-		val candidate = chapterUri.fragment?.takeIf { it.isNotEmpty() }?.let { File(root, it) }
-			?: chapterUri.toFileOrNull()
-			?: return null
-		val canonicalRoot = root.canonicalFile
-		val canonicalCandidate = candidate.canonicalFile
-		return canonicalCandidate.takeIf {
-			it.isFile && it.canRead() && it.toPath().startsWith(canonicalRoot.toPath())
-		}
-	}
 
 	override suspend fun getPageUrl(page: MangaPage) = page.url
 

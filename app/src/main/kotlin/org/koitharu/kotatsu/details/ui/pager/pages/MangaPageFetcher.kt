@@ -31,7 +31,6 @@ import org.koitharu.kotatsu.parsers.util.mimeType
 import org.koitharu.kotatsu.parsers.util.requireBody
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.reader.domain.PageLoader
-import org.koitharu.kotatsu.reader.domain.ProChanPageStitcher
 import javax.inject.Inject
 
 class MangaPageFetcher(
@@ -42,7 +41,6 @@ class MangaPageFetcher(
 	private val mangaRepositoryFactory: MangaRepository.Factory,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
 	private val imageLoader: ImageLoader,
-	private val proChanPageStitcher: ProChanPageStitcher,
 ) : Fetcher {
 
 	override suspend fun fetch(): FetchResult? {
@@ -55,14 +53,6 @@ class MangaPageFetcher(
 		}
 		val repo = mangaRepositoryFactory.create(page.source)
 		val pageUrl = repo.getPageUrl(page)
-		if (proChanPageStitcher.isStitchUrl(pageUrl)) {
-			val file = proChanPageStitcher.load(pageUrl, page.source)
-			return SourceFetchResult(
-				source = ImageSource(file.toOkioPath(), FileSystem.SYSTEM),
-				mimeType = "image/png",
-				dataSource = DataSource.DISK,
-			)
-		}
 		if (options.diskCachePolicy.readEnabled) {
 			pagesCache[pageUrl]?.let { file ->
 				return SourceFetchResult(
@@ -121,7 +111,6 @@ class MangaPageFetcher(
 		@PageCache private val pagesCache: LocalStorageCache,
 		private val mangaRepositoryFactory: MangaRepository.Factory,
 		private val imageProxyInterceptor: ImageProxyInterceptor,
-		private val proChanPageStitcher: ProChanPageStitcher,
 	) : Fetcher.Factory<MangaPage> {
 
 		override fun create(data: MangaPage, options: Options, imageLoader: ImageLoader) = MangaPageFetcher(
@@ -132,7 +121,6 @@ class MangaPageFetcher(
 			mangaRepositoryFactory = mangaRepositoryFactory,
 			imageProxyInterceptor = imageProxyInterceptor,
 			imageLoader = imageLoader,
-			proChanPageStitcher = proChanPageStitcher,
 		)
 	}
 }

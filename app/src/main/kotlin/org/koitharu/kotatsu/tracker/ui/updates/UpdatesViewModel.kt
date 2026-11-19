@@ -60,7 +60,7 @@ class UpdatesViewModel @Inject constructor(
 			mangaList.isEmpty() -> listOfNotNull(
 				quickFilter.filterItem(filters),
 				EmptyState(
-					icon = R.drawable.img_empty_history,
+					icon = R.drawable.ic_empty_history,
 					textPrimary = R.string.text_history_holder_primary,
 					textSecondary = R.string.text_history_holder_secondary,
 					actionStringRes = 0,

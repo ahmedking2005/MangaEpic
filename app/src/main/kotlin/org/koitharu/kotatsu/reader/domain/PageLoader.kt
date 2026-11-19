@@ -99,7 +99,6 @@ class PageLoader @Inject constructor(
 	private val imageProxyInterceptor: ImageProxyInterceptor,
 	private val downloadSlowdownDispatcher: DownloadSlowdownDispatcher,
 	private val captchaAutoResolveCoordinator: CaptchaAutoResolveCoordinator,
-	private val proChanPageStitcher: ProChanPageStitcher,
 	val imageHider: ImageHider,
 	private val preloader: PagePreloader,
 	val animatedPages: AnimatedPages,
@@ -441,14 +440,6 @@ class PageLoader @Inject constructor(
 	): Uri {
 		val pageUrl = getPageUrl(page)
 		check(pageUrl.isNotBlank()) { "Cannot obtain full image url for $page" }
-		if (proChanPageStitcher.isStitchUrl(pageUrl)) {
-			return proChanPageStitcher.load(
-				mapUrl = pageUrl,
-				source = page.source,
-				skipCache = skipCache,
-				onProgress = { progress.value = it },
-			).toUri()
-		}
 		if (!skipCache) {
 			preloader.awaitDownload(pageUrl)
 			cache.get(pageUrl)?.let { return decodeIfAvif(it.toUri()) }

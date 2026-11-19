@@ -271,50 +271,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isReaderModeDetectionEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READER_MODE_DETECT, true)
 
-	var novelFontSize: Int
-		get() = prefs.getInt(KEY_NOVEL_FONT_SIZE, 18)
-		set(value) = prefs.edit { putInt(KEY_NOVEL_FONT_SIZE, value) }
-
-	var novelFontFamily: String
-		get() = prefs.getString(KEY_NOVEL_FONT_FAMILY, "cairo") ?: "cairo"
-		set(value) = prefs.edit { putString(KEY_NOVEL_FONT_FAMILY, value) }
-
-	var novelLineSpacing: Float
-		get() = prefs.getFloat(KEY_NOVEL_LINE_SPACING, 1.6f)
-		set(value) = prefs.edit { putFloat(KEY_NOVEL_LINE_SPACING, value) }
-
-	var novelTextAlign: String
-		get() = prefs.getString(KEY_NOVEL_TEXT_ALIGN, "start") ?: "start"
-		set(value) = prefs.edit { putString(KEY_NOVEL_TEXT_ALIGN, value) }
-
-	var novelColorTheme: Int
-		get() = prefs.getInt(KEY_NOVEL_COLOR_THEME, 0)
-		set(value) = prefs.edit { putInt(KEY_NOVEL_COLOR_THEME, value) }
-
-	var isNovelScrollMode: Boolean
-		get() = prefs.getBoolean(KEY_NOVEL_SCROLL_MODE, true)
-		set(value) = prefs.edit { putBoolean(KEY_NOVEL_SCROLL_MODE, value) }
-
-	var isNovelContinuousChapters: Boolean
-		get() = prefs.getBoolean(KEY_NOVEL_CONTINUOUS_CHAPTERS, true)
-		set(value) = prefs.edit { putBoolean(KEY_NOVEL_CONTINUOUS_CHAPTERS, value) }
-
-	var animePlayerSpeed: Float
-		get() = prefs.getFloat(KEY_ANIME_PLAYER_SPEED, 1f)
-		set(value) = prefs.edit { putFloat(KEY_ANIME_PLAYER_SPEED, value) }
-
-	var animePlayerResizeMode: Int
-		get() = prefs.getInt(KEY_ANIME_PLAYER_RESIZE_MODE, 0)
-		set(value) = prefs.edit { putInt(KEY_ANIME_PLAYER_RESIZE_MODE, value) }
-
-	var isAnimeAutoNextEnabled: Boolean
-		get() = prefs.getBoolean(KEY_ANIME_PLAYER_AUTO_NEXT, true)
-		set(value) = prefs.edit { putBoolean(KEY_ANIME_PLAYER_AUTO_NEXT, value) }
-
-	var animePlayerQualityHeight: Int
-		get() = prefs.getInt(KEY_ANIME_PLAYER_QUALITY_HEIGHT, 720)
-		set(value) = prefs.edit { putInt(KEY_ANIME_PLAYER_QUALITY_HEIGHT, value) }
-
 	var isHistoryGroupingEnabled: Boolean
 		get() = prefs.getBoolean(KEY_HISTORY_GROUPING, true)
 		set(value) = prefs.edit { putBoolean(KEY_HISTORY_GROUPING, value) }
@@ -1025,17 +981,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_READER_CONTROLS = "reader_controls"
 		const val KEY_READER_MODE = "reader_mode"
 		const val KEY_READER_MODE_DETECT = "reader_mode_detect"
-		const val KEY_NOVEL_FONT_SIZE = "novel_font_size"
-		const val KEY_NOVEL_FONT_FAMILY = "novel_font_family"
-		const val KEY_NOVEL_LINE_SPACING = "novel_line_spacing"
-		const val KEY_NOVEL_TEXT_ALIGN = "novel_text_align"
-		const val KEY_NOVEL_COLOR_THEME = "novel_color_theme"
-		const val KEY_NOVEL_SCROLL_MODE = "novel_scroll_mode"
-		const val KEY_NOVEL_CONTINUOUS_CHAPTERS = "novel_continuous_chapters"
-		const val KEY_ANIME_PLAYER_SPEED = "anime_player_speed"
-		const val KEY_ANIME_PLAYER_RESIZE_MODE = "anime_player_resize_mode"
-		const val KEY_ANIME_PLAYER_AUTO_NEXT = "anime_player_auto_next"
-		const val KEY_ANIME_PLAYER_QUALITY_HEIGHT = "anime_player_quality_height"
 		const val KEY_READER_CROP = "reader_crop"
 		const val KEY_APP_PASSWORD = "app_password"
 		const val KEY_APP_PASSWORD_NUMERIC = "app_password_num"

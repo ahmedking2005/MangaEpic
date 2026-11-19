@@ -37,7 +37,7 @@ class AllBookmarksViewModel @Inject constructor(
 			if (list.isEmpty()) {
 				listOf(
 					EmptyState(
-						icon = R.drawable.img_empty_favourites,
+						icon = R.drawable.ic_empty_favourites,
 						textPrimary = R.string.no_bookmarks_yet,
 						textSecondary = R.string.no_bookmarks_summary,
 						actionStringRes = 0,

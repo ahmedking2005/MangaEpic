@@ -12,7 +12,6 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.ads.AdMobManager
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.github.AppVersion
 import org.koitharu.kotatsu.core.github.VersionId
@@ -32,18 +31,6 @@ class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
 
 	override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 		addPreferencesFromResource(R.xml.pref_about)
-		findPreference<Preference>(KEY_AD_PRIVACY_OPTIONS)?.run {
-			isVisible = AdMobManager.isEnabled() &&
-				AdMobManager.isPrivacyOptionsRequired(requireContext())
-			setOnPreferenceClickListener {
-				AdMobManager.showPrivacyOptions(requireActivity()) { error ->
-					if (error != null && isAdded) {
-						Snackbar.make(requireView(), error, Snackbar.LENGTH_SHORT).show()
-					}
-				}
-				true
-			}
-		}
 		findPreference<Preference>(AppSettings.KEY_APP_VERSION)?.run {
 			title = getString(R.string.app_version, BuildConfig.VERSION_NAME)
 		}
@@ -158,8 +145,6 @@ class AboutSettingsFragment : BasePreferenceFragment(R.string.about) {
 	}
 
 	private companion object {
-
-		private const val KEY_AD_PRIVACY_OPTIONS = "ad_privacy_options"
 		const val KEY_SPONSOR = "sponsor"
 		const val KEY_PARSERS_VERSION = "parsers_version"
 	}

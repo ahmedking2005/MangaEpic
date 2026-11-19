@@ -199,7 +199,7 @@ class ScrobblingSelectorViewModel @Inject constructor(
 	}
 
 	private fun emptyResultsHint() = ScrobblerHint(
-		icon = R.drawable.img_empty_history,
+		icon = R.drawable.ic_empty_history,
 		textPrimary = R.string.nothing_found,
 		textSecondary = R.string.text_search_holder_secondary,
 		error = null,

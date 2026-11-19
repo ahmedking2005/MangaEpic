@@ -235,7 +235,7 @@ class ExploreViewModel @Inject constructor(
 			sources.mapTo(result) { MangaSourceItem(it, isGrid, it.name in trending) }
 		} else {
 			result += EmptyHint(
-				icon = R.drawable.img_empty_common,
+				icon = R.drawable.ic_empty_common,
 				textPrimary = R.string.no_manga_sources,
 				textSecondary = R.string.no_manga_sources_text,
 				actionStringRes = R.string.catalog,
