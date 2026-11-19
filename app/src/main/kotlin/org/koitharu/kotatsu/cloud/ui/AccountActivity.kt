@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.cloud.ui
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.WindowInsetsCompat
@@ -39,6 +41,17 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivityAccountBinding.inflate(layoutInflater))
 		supportActionBar?.setDisplayHomeAsUpEnabled(true)
+		handleOAuthReturn(intent)
+		viewBinding.accountGoogle.setOnClickListener {
+			// Google sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
+			val url = supabase.googleAuthorizeUrl()
+			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+		}
+		viewBinding.accountFacebook.setOnClickListener {
+			// Facebook sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
+			val url = supabase.facebookAuthorizeUrl()
+			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+		}
 		viewBinding.buttonToggleMode.setOnClickListener {
 			isRegisterMode = !isRegisterMode
 			bindMode()
@@ -71,6 +84,39 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 			if (isRegisterMode) R.string.account_have_account else R.string.account_no_account_yet,
 		)
 		hideError()
+	}
+
+	override fun onNewIntent(intent: Intent) {
+		super.onNewIntent(intent)
+		handleOAuthReturn(intent)
+	}
+
+	/** Manga Epic: the OAuth browser flow lands back here with ?code=... on the deep link. */
+	private fun handleOAuthReturn(intent: Intent?) {
+		val uri = intent?.data ?: return
+		if (uri.scheme != "com.mangaepic.app") {
+			return
+		}
+		val code = uri.getQueryParameter("code")
+		if (code.isNullOrEmpty()) {
+			showError(getString(R.string.account_google_failed))
+			return
+		}
+		setBusy(true)
+		lifecycleScope.launch {
+			val result = supabase.exchangeOAuthCode(code)
+			setBusy(false)
+			when {
+				result.isSuccess && result.getOrNull() == true -> {
+					registerProfileAndDevice()
+					setResult(RESULT_OK)
+					finish()
+				}
+				else -> showError(
+					result.exceptionOrNull()?.message ?: getString(R.string.account_google_failed),
+				)
+			}
+		}
 	}
 
 	private fun submit() {
@@ -146,6 +192,8 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		viewBinding.accountProgress.visibility = if (busy) View.VISIBLE else View.GONE
 		viewBinding.buttonSubmit.isEnabled = !busy
 		viewBinding.buttonToggleMode.isEnabled = !busy
+		viewBinding.accountGoogle.isEnabled = !busy
+		viewBinding.accountFacebook.isEnabled = !busy
 	}
 
 	private fun showError(message: String) {
