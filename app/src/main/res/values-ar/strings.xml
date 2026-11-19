@@ -1238,7 +1238,6 @@
 	<string name="account_last_sync">آخر مزامنة: %1$s — دوس للمزامنة تاني</string>
 	<string name="account_sync_failed">المزامنة فشلت — دوس للمحاولة تاني</string>
 	<string name="account_google">المتابعة باستخدام جوجل</string>
-	<string name="account_facebook">المتابعة باستخدام فيسبوك</string>
 	<string name="account_google_failed">تسجيل الدخول بجوجل مكمّلش. حاول تاني.</string>
 	<string name="google_drive_backup">النسخ الاحتياطي إلى Google Drive</string>
 	<string name="google_account">حساب Google</string>
