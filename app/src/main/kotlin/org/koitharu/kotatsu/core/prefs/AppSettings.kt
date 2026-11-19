@@ -1163,3 +1163,5 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		private const val READER_CROP_WEBTOON = 2
 	}
 }
+
+// bisect trigger
