@@ -40,6 +40,17 @@
 			android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
 		<TextView
+			android:id="@+id/identityView"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="2dp"
+			android:gravity="center"
+			android:textAppearance="?attr/textAppearanceBodyMedium"
+			android:visibility="gone" />
+
+		<TextView
+			android:id="@+id/editHintView"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_gravity="center_horizontal"
