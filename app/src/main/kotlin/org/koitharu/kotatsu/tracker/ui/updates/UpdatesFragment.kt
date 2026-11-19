@@ -13,6 +13,8 @@ import org.koitharu.kotatsu.list.ui.MangaListFragment
 @AndroidEntryPoint
 class UpdatesFragment : MangaListFragment() {
 
+	override val showNativeAds = true
+
 	override val viewModel by viewModels<UpdatesViewModel>()
 	override val isSwipeRefreshEnabled = false
 

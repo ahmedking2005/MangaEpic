@@ -378,7 +378,7 @@ class DiscoverViewModel @Inject constructor(
 	}
 
 	private fun nothingFound(filter: DiscoverFilter) = EmptyHint(
-		icon = R.drawable.ic_empty_common,
+		icon = R.drawable.img_empty_common,
 		textPrimary = R.string.nothing_found,
 		textSecondary = if (filter != DiscoverFilter()) R.string.text_empty_holder_secondary_filtered else 0,
 		actionStringRes = 0,
@@ -386,7 +386,7 @@ class DiscoverViewModel @Inject constructor(
 
 	private fun noSources() = listOf<ListModel>(
 		EmptyHint(
-			icon = R.drawable.ic_empty_common,
+			icon = R.drawable.img_empty_common,
 			textPrimary = R.string.no_manga_sources,
 			textSecondary = R.string.no_manga_sources_text,
 			actionStringRes = R.string.manage,

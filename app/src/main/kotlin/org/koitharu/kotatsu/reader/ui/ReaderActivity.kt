@@ -201,6 +201,18 @@ class ReaderActivity :
             errorSnackbar.emit(error)
         }
         viewModel.readerMode.observe(this, Lifecycle.State.STARTED, this::onInitReader)
+        // Manga Epic: chapter-boundary interstitial — fires only when the loaded
+        // content actually switches to a different chapter (never on first load).
+        var lastChapterId: Long? = null
+        viewModel.content.map { it.state?.chapterId }.distinctUntilChanged()
+            .observe(this) { chapterId ->
+                if (chapterId != null) {
+                    if (lastChapterId != null && lastChapterId != chapterId) {
+                        org.koitharu.kotatsu.ads.AdMobManager.offerChapterBreakInterstitial(this)
+                    }
+                    lastChapterId = chapterId
+                }
+            }
         viewModel.onPageSaved.observeEvent(this, PagesSavedObserver(viewBinding.container))
         viewModel.uiState.zipWithPrevious().observe(this, this::onUiStateChanged)
         combine(

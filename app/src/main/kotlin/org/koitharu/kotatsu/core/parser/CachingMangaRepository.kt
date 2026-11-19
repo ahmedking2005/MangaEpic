@@ -17,6 +17,7 @@ import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.NovelChapterContent
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 
 abstract class CachingMangaRepository(
@@ -26,6 +27,7 @@ abstract class CachingMangaRepository(
 	private val detailsMutex = MultiMutex<Long>()
 	private val relatedMangaMutex = MultiMutex<Long>()
 	private val pagesMutex = MultiMutex<Long>()
+	private val novelContentMutex = MultiMutex<Long>()
 
 	final override suspend fun getDetails(manga: Manga): Manga = getDetails(manga, CachePolicy.ENABLED)
 
@@ -68,11 +70,24 @@ abstract class CachingMangaRepository(
 		cache.clear(source)
 	}
 
+	final override suspend fun getNovelContent(
+		chapter: MangaChapter,
+	): NovelChapterContent? = novelContentMutex.withLock(chapter.id) {
+		cache.getNovelContent(source, chapter.url)?.let { return it }
+		val content = asyncSafe {
+			getNovelContentImpl(chapter) ?: error("Novel content not available for this source")
+		}
+		cache.putNovelContent(source, chapter.url, content)
+		content
+	}.await()
+
 	protected abstract suspend fun getDetailsImpl(manga: Manga): Manga
 
 	protected abstract suspend fun getRelatedMangaImpl(seed: Manga): List<Manga>
 
 	protected abstract suspend fun getPagesImpl(chapter: MangaChapter): List<MangaPage>
+
+	protected open suspend fun getNovelContentImpl(chapter: MangaChapter): NovelChapterContent? = null
 
 	private suspend fun <T> asyncSafe(block: suspend CoroutineScope.() -> T): SafeDeferred<T> {
 		var dispatcher = currentCoroutineContext()[CoroutineDispatcher.Key]

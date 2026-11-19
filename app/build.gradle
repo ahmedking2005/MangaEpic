@@ -89,8 +89,12 @@ android {
 		// verify them. Must match the deployed worker's hostname in web/wrangler.toml exactly, or the
 		// links stop opening the app directly. Used by the manifest and by Manga.appUrl.
 		def appLinkHost = 'kotatsuredo.app'
-		manifestPlaceholders = [appLinkHost: appLinkHost]
+		manifestPlaceholders = [appLinkHost: appLinkHost, admobAppId: 'ca-app-pub-7796667973395558~1980743498']
 		buildConfigField 'String', 'APP_LINK_HOST', "\"${appLinkHost}\""
+		// Manga Epic AdMob ad units (real IDs; gated at runtime by Remote Config ads_enabled).
+		buildConfigField 'String', 'ADMOB_FEED_NATIVE_ID', '\"ca-app-pub-7796667973395558/1383470984\"'
+		buildConfigField 'String', 'ADMOB_DETAILS_NATIVE_ID', '\"ca-app-pub-7796667973395558/8092736608\"'
+		buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-7796667973395558/1076349223\"'
 
 		// Where parsers newer than the ones built in are published, and the public half of the key they are signed
 		// with: see docs/BUNDLE.md in the parsers repository. Whoever holds the private half can run code in every
@@ -99,7 +103,7 @@ android {
 		// environment, or set the key to `none` to take no parsers from anywhere.
 		def parsersBundleUrl = readSecret('parsers_bundle_url', 'PARSERS_BUNDLE_URL')
 			?: 'https://github.com/Kotatsu-Redo/kotatsu-parsers-redo/releases/download/parsers-bundle'
-		def parsersBundleKey = readSecret('parsers_bundle_key', 'PARSERS_BUNDLE_KEY') ?: parsersBundlePublicKey
+		def parsersBundleKey = readSecret('parsers_bundle_key', 'PARSERS_BUNDLE_KEY') ?: 'none'
 		if (parsersBundleKey == 'none') {
 			parsersBundleKey = ''
 		}
@@ -313,6 +317,11 @@ dependencies {
 
 	implementation libs.acra.dialog
 	implementation libs.sentry.android
+	implementation libs.media3.exoplayer
+	implementation libs.media3.exoplayer.hls
+	implementation libs.media3.ui
+	implementation libs.play.services.ads
+	implementation libs.user.messaging.platform
 
 	implementation libs.conscrypt.android
 

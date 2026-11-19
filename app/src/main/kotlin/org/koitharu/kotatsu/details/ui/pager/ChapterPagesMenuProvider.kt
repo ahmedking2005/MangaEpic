@@ -41,7 +41,10 @@ class ChapterPagesMenuProvider(
 				}
 				menu.findItem(R.id.action_search)?.isVisible = viewModel.emptyReason.value == null
 				menu.findItem(R.id.action_reversed)?.isChecked = viewModel.isChaptersReversed.value == true
-				menu.findItem(R.id.action_grid_view)?.isChecked = viewModel.isChaptersInGridView.value == true
+				menu.findItem(R.id.action_grid_view)?.let { menuItem ->
+					menuItem.isVisible = !viewModel.isNovelContent
+					menuItem.isChecked = viewModel.isChaptersInGridView.value == true
+				}
 				menu.findItem(R.id.action_downloaded)?.let { menuItem ->
 					menuItem.isVisible = viewModel.mangaDetails.value?.local != null
 					menuItem.isChecked = viewModel.isDownloadedOnly.value == true

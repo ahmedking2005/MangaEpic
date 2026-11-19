@@ -37,15 +37,20 @@ import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.internal.closeQuietly
+import okio.Buffer
 import okio.IOException
 import okio.buffer
 import okio.sink
 import okio.use
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.anime.data.AnimePlaybackRepository
+import org.koitharu.kotatsu.anime.data.AnimeStreamSelector
 import org.koitharu.kotatsu.core.image.BitmapDecoderCompat
 import org.koitharu.kotatsu.core.model.ids
+import org.koitharu.kotatsu.core.model.isAnimeSource
 import org.koitharu.kotatsu.core.model.isLocal
 import org.koitharu.kotatsu.core.network.MangaHttpClient
 import org.koitharu.kotatsu.core.network.imageproxy.ImageProxyInterceptor
@@ -58,6 +63,7 @@ import org.koitharu.kotatsu.core.util.ext.MimeType
 import org.koitharu.kotatsu.core.util.ext.awaitFinishedWorkInfosByTag
 import org.koitharu.kotatsu.core.util.ext.awaitUpdateWork
 import org.koitharu.kotatsu.core.util.ext.awaitWorkInfosByTag
+import org.koitharu.kotatsu.core.util.ext.cancellable
 import org.koitharu.kotatsu.core.util.ext.deleteAwait
 import org.koitharu.kotatsu.core.util.ext.deleteWork
 import org.koitharu.kotatsu.core.util.ext.deleteWorks
@@ -81,18 +87,24 @@ import org.koitharu.kotatsu.local.data.LocalStorageChanges
 import org.koitharu.kotatsu.local.data.PageCache
 import org.koitharu.kotatsu.local.data.TempFileFilter
 import org.koitharu.kotatsu.local.data.input.LocalMangaParser
+import org.koitharu.kotatsu.local.data.output.LocalAnimeOutput
 import org.koitharu.kotatsu.local.data.output.LocalMangaOutput
 import org.koitharu.kotatsu.local.domain.MangaLock
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.AnimeStream
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
+import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.requireBody
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.reader.domain.PageLoader
+import org.koitharu.kotatsu.reader.domain.ProChanPageStitcher
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -114,6 +126,7 @@ class DownloadWorker @AssistedInject constructor(
 	@LocalStorageChanges private val localStorageChanges: MutableSharedFlow<LocalManga?>,
 	private val slowdownDispatcher: DownloadSlowdownDispatcher,
 	private val imageProxyInterceptor: ImageProxyInterceptor,
+	private val proChanPageStitcher: ProChanPageStitcher,
 	notificationFactoryFactory: DownloadNotificationFactory.Factory,
 ) : CoroutineWorker(appContext, params) {
 
@@ -140,7 +153,11 @@ class DownloadWorker @AssistedInject constructor(
 				pausingHandle.pause()
 			}
 			withContext(pausingHandle) {
-				downloadMangaImpl(manga, task, downloadedIds)
+				if (manga.source.isAnimeSource()) {
+					downloadAnimeImpl(manga, task, downloadedIds)
+				} else {
+					downloadMangaImpl(manga, task, downloadedIds)
+				}
 			}
 			Result.success(currentState.toWorkData())
 		} catch (_: CancellationException) {
@@ -177,6 +194,114 @@ class DownloadWorker @AssistedInject constructor(
 			id.hashCode(),
 			notificationFactory.create(lastPublishedState),
 		)
+	}
+
+	private suspend fun downloadAnimeImpl(
+		subject: Manga,
+		task: DownloadTask,
+		excludedIds: Set<Long>,
+	) {
+		var manga = subject
+		val chaptersToSkip = excludedIds.toMutableSet()
+		val pausingReceiver = PausingReceiver(id, PausingHandle.current())
+		mangaLock.withLock(manga) {
+			ContextCompat.registerReceiver(
+				applicationContext,
+				pausingReceiver,
+				PausingReceiver.createIntentFilter(id),
+				ContextCompat.RECEIVER_NOT_EXPORTED,
+			)
+			val destination = localMangaRepository.getOutputDir(manga, task.destination)
+			checkNotNull(destination) { applicationContext.getString(R.string.cannot_find_available_storage) }
+			val tempFiles = ConcurrentLinkedQueue<File>()
+			try {
+				if (manga.isLocal) {
+					manga = localMangaRepository.getRemoteManga(manga)
+						?: error("Cannot obtain remote anime instance")
+				}
+				val repo = mangaRepositoryFactory.create(manga.source)
+				val playbackRepo = repo as? AnimePlaybackRepository
+					?: error("Anime downloads are not supported by ${manga.source.name}")
+				val details = if (manga.chapters.isNullOrEmpty() || manga.description.isNullOrEmpty()) {
+					repo.getDetails(manga)
+				} else {
+					manga
+				}
+				val output = LocalAnimeOutput.getOrCreate(destination, details)
+				val coverUrl = details.largeCoverUrl.ifNullOrEmpty { details.coverUrl }
+				if (!coverUrl.isNullOrEmpty()) {
+					downloadFile(coverUrl, destination, repo.source, tempFiles).let { file ->
+						output.addCover(file, getMediaType(coverUrl, file))
+						file.deleteAwait()
+					}
+				}
+				val chapters = getChapters(details, task)
+				for ((chapterIndex, chapter) in chapters.withIndex()) {
+					checkIsPaused()
+					if (chaptersToSkip.remove(chapter.value.id)) {
+						publishState(currentState.copy(downloadedChapters = currentState.downloadedChapters + 1))
+						continue
+					}
+					val streams = runFailsafe {
+						playbackRepo.getAnimeStreams(chapter.value).ifEmpty {
+							throw IOException("No downloadable streams for ${chapter.value.title.orEmpty()}")
+						}
+					} ?: continue
+					val orderedStreams = AnimeStreamSelector.orderForPlayback(
+						streams,
+						settings.animePlayerQualityHeight,
+					)
+					var artifact: AnimeDownloadArtifact? = null
+					var lastError: Throwable? = null
+					for (stream in orderedStreams) {
+						checkIsPaused()
+						try {
+							artifact = downloadAnimeStream(
+								stream = stream,
+								destination = destination,
+								source = repo.source,
+								tempFiles = tempFiles,
+								chapterIndex = chapterIndex,
+								chaptersCount = chapters.size,
+							)
+							break
+						} catch (e: CancellationException) {
+							throw e
+						} catch (e: Exception) {
+							lastError = e
+							e.printStackTraceDebug()
+						}
+					}
+					val completed = artifact ?: throw (
+						lastError ?: IOException("All anime download servers failed")
+					)
+					output.addEpisode(chapter, completed.file, completed.manifestName)
+					output.finish()
+					runCatchingCancellable {
+						localStorageChanges.emit(LocalMangaParser(output.rootFile).getManga(withDetails = false))
+					}.onFailure(Throwable::printStackTraceDebug)
+					publishState(
+						currentState.copy(
+							downloadedChapters = currentState.downloadedChapters + 1,
+							isIndeterminate = true,
+							eta = -1L,
+							isStuck = false,
+						),
+					)
+				}
+				output.finish()
+				val localAnime = LocalMangaParser(output.rootFile).getManga(withDetails = false)
+				localStorageChanges.emit(localAnime)
+				publishState(currentState.copy(localManga = localAnime, eta = -1L, isStuck = false))
+			} finally {
+				withContext(NonCancellable) {
+					applicationContext.unregisterReceiver(pausingReceiver)
+					tempFiles.forEach { file ->
+						if (file.isDirectory) file.deleteRecursively() else file.deleteAwait()
+					}
+				}
+			}
+		}
 	}
 
 	private suspend fun downloadMangaImpl(
@@ -217,10 +342,34 @@ class DownloadWorker @AssistedInject constructor(
 						file.deleteAwait()
 					}
 				}
+				val isNovel = (mangaDetails.source as? ParserMangaSource)?.contentType == ContentType.NOVEL
 				val chapters = getChapters(mangaDetails, task)
 				for ((chapterIndex, chapter) in chapters.withIndex()) {
 					checkIsPaused()
 					if (chaptersToSkip.remove(chapter.value.id)) {
+						publishState(currentState.copy(downloadedChapters = currentState.downloadedChapters + 1))
+						continue
+					}
+					if (isNovel) {
+						val novelContent = runFailsafe {
+							repo.getNovelContent(chapter.value)
+						} ?: continue
+						val htmlFile = File(destination, "novel_chapter_${chapter.value.id}.html")
+						runInterruptible(Dispatchers.IO) {
+							htmlFile.writeText(novelContent.html, Charsets.UTF_8)
+						}
+						output.addPage(
+							chapter = chapter,
+							file = htmlFile,
+							pageNumber = 0,
+							type = "text/html".toMimeTypeOrNull(),
+						)
+						htmlFile.deleteAwait()
+						if (output.flushChapter(chapter.value)) {
+							runCatchingCancellable {
+								localStorageChanges.emit(LocalMangaParser(output.rootFile).getManga(withDetails = false))
+							}.onFailure(Throwable::printStackTraceDebug)
+						}
 						publishState(currentState.copy(downloadedChapters = currentState.downloadedChapters + 1))
 						continue
 					}
@@ -236,8 +385,11 @@ class DownloadWorker @AssistedInject constructor(
 								semaphore.withPermit {
 									runFailsafe {
 										val url = repo.getPageUrl(page)
-										val file = cache[url]
-											?: downloadFile(url, destination, repo.source, tempFiles)
+										val file = if (proChanPageStitcher.isStitchUrl(url)) {
+											proChanPageStitcher.load(url, repo.source)
+										} else {
+											cache[url] ?: downloadFile(url, destination, repo.source, tempFiles)
+										}
 										output.addPage(
 											chapter = chapter,
 											file = file,
@@ -305,6 +457,206 @@ class DownloadWorker @AssistedInject constructor(
 			}
 		}
 	}
+
+	private suspend fun downloadAnimeStream(
+		stream: AnimeStream,
+		destination: File,
+		source: MangaSource,
+		tempFiles: MutableCollection<File>,
+		chapterIndex: Int,
+		chaptersCount: Int,
+	): AnimeDownloadArtifact {
+		if (isHlsStream(stream.url)) {
+			return downloadHlsStream(
+				stream = stream,
+				destination = destination,
+				source = source,
+				tempFiles = tempFiles,
+				chapterIndex = chapterIndex,
+				chaptersCount = chaptersCount,
+			)
+		}
+		val extension = AnimeHlsPlaylist.extension(stream.url, "mp4")
+		val file = downloadFile(
+			url = stream.url,
+			destination = destination,
+			source = source,
+			tempFiles = tempFiles,
+			requestHeaders = stream.headers,
+			preferredExtension = extension,
+			useImageProxy = false,
+			onProgress = { bytesRead, contentLength ->
+				publishAnimeByteProgress(chapterIndex, chaptersCount, bytesRead, contentLength)
+			},
+		)
+		return AnimeDownloadArtifact(file = file, manifestName = null)
+	}
+
+	private suspend fun downloadHlsStream(
+		stream: AnimeStream,
+		destination: File,
+		source: MangaSource,
+		tempFiles: MutableCollection<File>,
+		chapterIndex: Int,
+		chaptersCount: Int,
+	): AnimeDownloadArtifact {
+		val workingDirectory = File(destination, ".anime_${UUID.randomUUID()}.tmp")
+		check(workingDirectory.mkdirs()) { "Cannot create temporary anime download directory" }
+		tempFiles += workingDirectory
+		try {
+			val (playlistUrl, playlist) = resolveMediaPlaylist(stream, source)
+			val lines = playlist.lineSequence().map { it.trimEnd('\r') }.toList()
+			if (lines.any { it.startsWith("#EXT-X-BYTERANGE", ignoreCase = true) }) {
+				throw IOException("Byte-range HLS is not supported for offline anime downloads")
+			}
+			val resourceCount = lines.count { line ->
+				val trimmed = line.trim()
+				(trimmed.isNotEmpty() && !trimmed.startsWith('#')) ||
+					(trimmed.startsWith("#EXT-X-KEY", true) && !trimmed.contains("METHOD=NONE", true)) ||
+					trimmed.startsWith("#EXT-X-MAP", true) || trimmed.startsWith("#EXT-X-PART", true)
+			}.coerceAtLeast(1)
+			val downloadedResources = HashMap<String, String>()
+			var resourceIndex = 0
+
+			suspend fun downloadResource(reference: String, fallbackExtension: String): String {
+				val absoluteUrl = playlistUrl.toHttpUrlOrNull()?.resolve(reference)?.toString()
+					?: throw IOException("Invalid HLS resource URL: $reference")
+				downloadedResources[absoluteUrl]?.let { return it }
+				val extension = AnimeHlsPlaylist.extension(absoluteUrl, fallbackExtension)
+				val temp = downloadFile(
+					url = absoluteUrl,
+					destination = workingDirectory,
+					source = source,
+					tempFiles = tempFiles,
+					requestHeaders = stream.headers,
+					preferredExtension = extension,
+					useImageProxy = false,
+				)
+				val localName = "asset_${resourceIndex.toString().padStart(5, '0')}.$extension"
+				val localFile = File(workingDirectory, localName)
+				check(temp.renameTo(localFile) || runCatching {
+					temp.copyTo(localFile, overwrite = true)
+					temp.delete()
+					localFile.isFile
+				}.getOrDefault(false)) { "Cannot store HLS resource" }
+				tempFiles.remove(temp)
+				resourceIndex++
+				downloadedResources[absoluteUrl] = localName
+				publishAnimeUnitProgress(
+					chapterIndex = chapterIndex,
+					chaptersCount = chaptersCount,
+					currentUnit = resourceIndex,
+					totalUnits = resourceCount,
+				)
+				return localName
+			}
+
+			val localPlaylist = buildList {
+				for (rawLine in lines) {
+					val line = rawLine.trim()
+					when {
+						line.startsWith("#EXT-X-PRELOAD-HINT", true) ||
+							line.startsWith("#EXT-X-RENDITION-REPORT", true) -> Unit
+
+						line.startsWith("#EXT-X-KEY", true) && !line.contains("METHOD=NONE", true) -> {
+							val uri = AnimeHlsPlaylist.uriAttribute(line)
+								?: throw IOException("HLS key has no URI")
+							add(AnimeHlsPlaylist.replaceUriAttribute(rawLine, downloadResource(uri, "key")))
+						}
+
+						line.startsWith("#EXT-X-MAP", true) || line.startsWith("#EXT-X-PART", true) -> {
+							val uri = AnimeHlsPlaylist.uriAttribute(line)
+								?: throw IOException("HLS resource has no URI")
+							add(AnimeHlsPlaylist.replaceUriAttribute(rawLine, downloadResource(uri, "mp4")))
+						}
+
+						line.isNotEmpty() && !line.startsWith('#') -> {
+							add(downloadResource(line, "ts"))
+						}
+
+						else -> add(rawLine)
+					}
+				}
+				if (none { it.trim().equals("#EXT-X-ENDLIST", true) }) add("#EXT-X-ENDLIST")
+			}.joinToString("\n")
+			val manifest = File(workingDirectory, OFFLINE_HLS_MANIFEST)
+			runInterruptible(Dispatchers.IO) {
+				manifest.writeText(localPlaylist, Charsets.UTF_8)
+			}
+			return AnimeDownloadArtifact(workingDirectory, OFFLINE_HLS_MANIFEST)
+		} catch (e: Exception) {
+			workingDirectory.deleteRecursively()
+			tempFiles.remove(workingDirectory)
+			throw e
+		}
+	}
+
+	private suspend fun resolveMediaPlaylist(
+		stream: AnimeStream,
+		source: MangaSource,
+	): Pair<String, String> {
+		var url = stream.url
+		repeat(MAX_HLS_PLAYLIST_DEPTH) {
+			val playlist = loadText(url, source, stream.headers)
+			val variant = AnimeHlsPlaylist.selectVariant(playlist, settings.animePlayerQualityHeight)
+				?: return url to playlist
+			url = url.toHttpUrlOrNull()?.resolve(variant)?.toString()
+				?: throw IOException("Invalid HLS variant URL: $variant")
+		}
+		throw IOException("HLS playlist nesting is too deep")
+	}
+
+	private suspend fun loadText(
+		url: String,
+		source: MangaSource,
+		requestHeaders: Map<String, String>,
+	): String {
+		val request = PageLoader.createPageRequest(url, source).newBuilder()
+			.header("Accept", "application/vnd.apple.mpegurl, application/x-mpegURL, */*")
+			.apply { requestHeaders.forEach { (name, value) -> header(name, value) } }
+			.build()
+		slowdownDispatcher.delay(source)
+		return okHttp.newCall(request).await().ensureSuccess().use { response ->
+			response.requireBody().string()
+		}
+	}
+
+	private suspend fun publishAnimeByteProgress(
+		chapterIndex: Int,
+		chaptersCount: Int,
+		bytesRead: Long,
+		contentLength: Long,
+	) {
+		if (contentLength <= 0L) return
+		val unit = ((bytesRead.coerceAtMost(contentLength) * ANIME_PROGRESS_UNITS) / contentLength)
+			.toInt()
+		publishAnimeUnitProgress(chapterIndex, chaptersCount, unit, ANIME_PROGRESS_UNITS)
+	}
+
+	private suspend fun publishAnimeUnitProgress(
+		chapterIndex: Int,
+		chaptersCount: Int,
+		currentUnit: Int,
+		totalUnits: Int,
+	) {
+		publishState(
+			currentState.copy(
+				totalChapters = chaptersCount,
+				currentChapter = chapterIndex,
+				totalPages = totalUnits.coerceAtLeast(1),
+				currentPage = (currentUnit - 1).coerceIn(0, totalUnits.coerceAtLeast(1) - 1),
+				isIndeterminate = false,
+				eta = etaEstimator.getEta(),
+				isStuck = etaEstimator.isStuck(),
+			),
+		)
+	}
+
+	private fun isHlsStream(url: String): Boolean =
+		url.substringBefore('?').endsWith(".m3u8", ignoreCase = true) ||
+			url.contains("m3u8", ignoreCase = true)
+
+	private data class AnimeDownloadArtifact(val file: File, val manifestName: String?)
 
 	private suspend fun <R> runFailsafe(
 		block: suspend () -> R,
@@ -376,6 +728,10 @@ class DownloadWorker @AssistedInject constructor(
 		destination: File,
 		source: MangaSource,
 		tempFiles: MutableCollection<File>,
+		requestHeaders: Map<String, String> = emptyMap(),
+		onProgress: (suspend (bytesRead: Long, contentLength: Long) -> Unit)? = null,
+		preferredExtension: String? = null,
+		useImageProxy: Boolean = true,
 	): File {
 		if (url.startsWith("content:", ignoreCase = true) || url.startsWith("file:", ignoreCase = true)) {
 			val uri = url.toUri()
@@ -397,19 +753,47 @@ class DownloadWorker @AssistedInject constructor(
 			}
 			return file
 		}
-		val request = PageLoader.createPageRequest(url, source)
+		val request = PageLoader.createPageRequest(url, source).newBuilder()
+			.header("Accept", "*/*")
+			.apply {
+				requestHeaders.forEach { (name, value) -> header(name, value) }
+			}
+			.build()
 		slowdownDispatcher.delay(source)
-		return imageProxyInterceptor.interceptPageRequest(request, okHttp)
+		val response = if (useImageProxy) {
+			imageProxyInterceptor.interceptPageRequest(request, okHttp)
+		} else {
+			// Video manifests and segments are not images. Sending them through the
+			// optional image proxy can leave large downloads waiting indefinitely.
+			okHttp.newCall(request).await()
+		}
+		return response
 			.ensureSuccess()
 			.use { response ->
 				var file: File? = null
 				try {
 					response.requireBody().use { body ->
 						file = destination.createTempFile(
-							ext = MimeTypes.getExtension(body.contentType()?.toMimeType())
+							ext = preferredExtension ?: MimeTypes.getExtension(body.contentType()?.toMimeType()),
 						).also { tempFiles += it }
-						file.sink(append = false).buffer().use {
-							it.writeAllCancellable(body.source())
+						file.sink(append = false).buffer().use { sink ->
+							if (onProgress == null) {
+								sink.writeAllCancellable(body.source())
+							} else {
+								val contentLength = body.contentLength()
+								withContext(Dispatchers.IO) {
+									val source = body.source().cancellable()
+									val buffer = Buffer()
+									var totalBytesRead = 0L
+									while (true) {
+										val read = source.read(buffer, ANIME_COPY_BUFFER_SIZE)
+										if (read == -1L) break
+										sink.write(buffer, read)
+										totalBytesRead += read
+										onProgress(totalBytesRead, contentLength)
+									}
+								}
+							}
 						}
 					}
 				} catch (e: Exception) {
@@ -563,10 +947,11 @@ class DownloadWorker @AssistedInject constructor(
 		}
 
 		suspend fun schedule(tasks: Collection<Pair<Manga, DownloadTask>>) {
-			if (tasks.isEmpty()) {
+			val downloadableTasks = tasks.filterNot { (manga, _) -> manga.isLocal }
+			if (downloadableTasks.isEmpty()) {
 				return
 			}
-			val requests = tasks.map { (manga, task) ->
+			val requests = downloadableTasks.map { (manga, task) ->
 				mangaDataRepository.storeManga(manga, replaceExisting = true)
 				OneTimeWorkRequestBuilder<DownloadWorker>()
 					.setConstraints(createConstraints(task.allowMeteredNetwork))
@@ -589,6 +974,10 @@ class DownloadWorker @AssistedInject constructor(
 
 		const val MAX_FAILSAFE_ATTEMPTS = 2
 		const val MAX_PAGES_PARALLELISM = 4
+		const val ANIME_COPY_BUFFER_SIZE = 64L * 1024L
+		const val ANIME_PROGRESS_UNITS = 1_000
+		const val MAX_HLS_PLAYLIST_DEPTH = 4
+		const val OFFLINE_HLS_MANIFEST = "offline.m3u8"
 		const val DOWNLOAD_ERROR_DELAY = 2_000L
 		const val MAX_RETRY_DELAY = 7_200_000L // 2 hours
 		const val TAG = "download"

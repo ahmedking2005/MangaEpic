@@ -248,14 +248,14 @@ class HistoryListViewModel @Inject constructor(
 
 	private fun getEmptyState(hasFilters: Boolean) = if (hasFilters) {
 		EmptyState(
-			icon = R.drawable.ic_empty_history,
+			icon = R.drawable.img_empty_history,
 			textPrimary = R.string.nothing_found,
 			textSecondary = R.string.text_empty_holder_secondary_filtered,
 			actionStringRes = R.string.reset_filter,
 		)
 	} else {
 		EmptyState(
-			icon = R.drawable.ic_empty_history,
+			icon = R.drawable.img_empty_history,
 			textPrimary = R.string.text_history_holder_primary,
 			textSecondary = R.string.text_history_holder_secondary,
 			actionStringRes = 0,

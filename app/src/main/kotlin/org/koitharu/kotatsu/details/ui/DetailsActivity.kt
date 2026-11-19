@@ -46,7 +46,11 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.ads.AdMobManager
+import org.koitharu.kotatsu.ads.NativeAdController
+import org.koitharu.kotatsu.ads.bindNativeAd
 import org.koitharu.kotatsu.bookmarks.domain.Bookmark
 import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
 import org.koitharu.kotatsu.core.model.FavouriteCategory
@@ -158,6 +162,8 @@ class DetailsActivity :
 	private val viewModel: DetailsViewModel by viewModels()
 	private lateinit var menuProvider: DetailsMenuProvider
 	private lateinit var infoBinding: LayoutDetailsTableBinding
+	private val nativeAdController = NativeAdController(BuildConfig.ADMOB_DETAILS_NATIVE_ID)
+	private var isDetailsAdRequested = false
 
 	override val bottomSheet: View?
 		get() = viewBinding.containerBottomSheet
@@ -441,6 +447,7 @@ class DetailsActivity :
 
 	private fun onMangaUpdated(details: MangaDetails) {
 		val manga = details.toManga()
+		updateDetailsAd(manga)
 		with(viewBinding) {
 			textViewTitle.text = manga.title
 			// Alternative titles are hidden here. Sources often carry a translation per language, so
@@ -505,6 +512,31 @@ class DetailsActivity :
 		}
 		title = manga.title
 		invalidateOptionsMenu()
+	}
+
+	private fun updateDetailsAd(manga: Manga) {
+		val adBinding = viewBinding.detailsNativeAd
+		val isEligible = AdMobManager.isEnabled() &&
+			manga.source != LocalMangaSource &&
+			manga.source != UnknownMangaSource &&
+			manga.contentRating != ContentRating.SUGGESTIVE &&
+			manga.contentRating != ContentRating.ADULT
+		if (!isEligible) {
+			adBinding.root.isVisible = false
+			return
+		}
+		if (isDetailsAdRequested) return
+		isDetailsAdRequested = true
+		nativeAdController.getOrLoad(this, DETAILS_AD_SLOT) { nativeAd ->
+			if (nativeAd == null || isFinishing || isDestroyed) return@getOrLoad
+			adBinding.bindNativeAd(nativeAd)
+			adBinding.root.isVisible = true
+		}
+	}
+
+	override fun onDestroy() {
+		nativeAdController.destroy()
+		super.onDestroy()
 	}
 
 	private fun onMangaRemoved(manga: Manga) {
@@ -642,6 +674,7 @@ class DetailsActivity :
 	companion object {
 
 		private const val FAV_LABEL_LIMIT = 16
+		private const val DETAILS_AD_SLOT = 0
 	}
 	/**
 	 * The one place the details screen touches the community feature.

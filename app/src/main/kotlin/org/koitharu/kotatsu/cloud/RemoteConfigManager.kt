@@ -71,6 +71,10 @@ object RemoteConfigManager {
 	val isNotificationsEnabled: Boolean
 		get() = config.getBoolean("enable_notifications")
 
+	/** Kill switch for AdMob ads (native + interstitial). Default on. */
+	val isAdsEnabled: Boolean
+		get() = config.getBoolean("ads_enabled")
+
 	/** Build number = last component of versionName "9.9.N"; 0 when it cannot be parsed. */
 	fun currentBuild(versionName: String?): Int =
 		versionName?.substringAfterLast('.')?.toIntOrNull() ?: 0

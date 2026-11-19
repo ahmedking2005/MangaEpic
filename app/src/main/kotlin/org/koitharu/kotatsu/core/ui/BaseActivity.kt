@@ -64,6 +64,7 @@ abstract class BaseActivity<B : ViewBinding> :
 	protected open val applyColorSchemeTheme: Boolean = true
 
 	override fun onCreate(savedInstanceState: Bundle?) {
+		org.koitharu.kotatsu.ads.AdMobManager.initialize(this)
 		val settings = entryPoint.settings
 		isAmoledTheme = settings.isAmoledTheme
 		if (applyColorSchemeTheme) {
