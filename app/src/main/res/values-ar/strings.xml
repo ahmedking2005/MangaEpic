@@ -1278,9 +1278,6 @@
 	<string name="next_episode">الحلقة التالية</string>
 	<string name="novel_continuous_scroll">فصول متتابعة بالتمرير</string>
 	<string name="novel_reader_settings">إعدادات قارئ الروايات</string>
-	<string name="optional_anime_ad_message">هل ترغب في مشاهدة إعلان قبل تشغيل الحلقة؟ هذا اختياري تمامًا، ويمكنك تشغيل الحلقة فورًا بدون إعلان. وإذا اخترت مشاهدة الإعلان، فأنت تساهم بشكل مباشر في دعمنا والاستمرار في تطوير التطبيق وإضافة المزيد من المحتوى. شكرًا لدعمك ❤️</string>
-	<string name="optional_anime_ad_title">إعلان اختياري</string>
-	<string name="play_now">تشغيل الحلقة</string>
 	<string name="player_auto_next">تشغيل الحلقة التالية تلقائيًا</string>
 	<string name="player_controls_locked">تم قفل أزرار المشغّل</string>
 	<string name="player_display_fill">ملء الشاشة</string>
@@ -1313,6 +1310,5 @@
 	<string name="theme_normal">فاتح</string>
 	<string name="theme_pink">زهري</string>
 	<string name="watch">مشاهدة</string>
-	<string name="watch_ad">مشاهدة الإعلان</string>
 	<string name="cancel">إلغاء</string>
 </resources>
