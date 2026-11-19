@@ -102,6 +102,12 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 		}
 	}
 
+	private val coverPicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+		if (uri != null) {
+			saveCover(uri)
+		}
+	}
+
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		// Manga Epic: immersive page — the search bar and the bottom navigation
@@ -144,6 +150,29 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 			shape = GradientDrawable.OVAL
 			setStroke((4 * density).toInt(), primary)
 		}
+		// Manga Epic: an explicit way out of the immersive page — the bottom bar is
+		// hidden here, so the page carries its own close button over the banner.
+		view.findViewById<View>(R.id.closeButton).setOnClickListener {
+			requireActivity().onBackPressedDispatcher.onBackPressed()
+		}
+		// Manga Epic: the banner is the cover-photo area. Tapping it picks a photo;
+		// with a cover already set it offers replacing or removing it. The cover
+		// image is clipped to the banner's rounded bottom corners, like the gradient.
+		val coverView = view.findViewById<ImageView>(R.id.coverView)
+		coverView.outlineProvider = object : ViewOutlineProvider() {
+			override fun getOutline(view: View, outline: Outline) {
+				outline.setRoundRect(0, -corner.toInt(), view.width, view.height, corner)
+			}
+		}
+		coverView.clipToOutline = true
+		view.findViewById<View>(R.id.bannerView).setOnClickListener {
+			if (coverFile().exists()) {
+				showCoverDialog()
+			} else {
+				coverPicker.launch("image/*")
+			}
+		}
+		bindCover(view)
 		val avatarView = view.findViewById<ImageView>(R.id.avatarView)
 		avatarView.outlineProvider = object : ViewOutlineProvider() {
 			override fun getOutline(view: View, outline: Outline) {
@@ -361,6 +390,71 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
 	private fun avatarFile(): File = File(requireContext().filesDir, "profile/avatar.jpg")
 
+	private fun coverFile(): File = File(requireContext().filesDir, "profile/cover.jpg")
+
+	/** Manga Epic: the banner shows the cover photo when one is set; otherwise the
+	 *  theme gradient on the banner shows through. Local only — never synced. */
+	private fun bindCover(root: View) {
+		val coverView = root.findViewById<ImageView>(R.id.coverView)
+		val file = coverFile()
+		if (file.exists()) {
+			coverView.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+			coverView.visibility = View.VISIBLE
+		} else {
+			coverView.setImageDrawable(null)
+			coverView.visibility = View.GONE
+		}
+	}
+
+	private fun showCoverDialog() {
+		MaterialAlertDialogBuilder(requireContext())
+			.setTitle(R.string.profile_cover)
+			.setItems(
+				arrayOf<CharSequence>(
+					getString(R.string.profile_cover_change),
+					getString(R.string.profile_cover_remove),
+				),
+			) { _, which ->
+				when (which) {
+					0 -> coverPicker.launch("image/*")
+					1 -> {
+						coverFile().delete()
+						view?.let { bindCover(it) }
+					}
+				}
+			}
+			.show()
+	}
+
+	private fun saveCover(uri: Uri) {
+		val context = requireContext()
+		viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+			runCatching {
+				val source = context.contentResolver.openInputStream(uri)?.use { input ->
+					BitmapFactory.decodeStream(input)
+				} ?: return@runCatching
+				val maxDim = maxOf(source.width, source.height)
+				val scaled = if (maxDim > COVER_MAX_SIZE) {
+					val ratio = COVER_MAX_SIZE.toFloat() / maxDim
+					Bitmap.createScaledBitmap(
+						source,
+						(source.width * ratio).toInt().coerceAtLeast(1),
+						(source.height * ratio).toInt().coerceAtLeast(1),
+						true,
+					)
+				} else {
+					source
+				}
+				val file = coverFile()
+				file.parentFile?.mkdirs()
+				file.outputStream().use { out -> scaled.compress(Bitmap.CompressFormat.JPEG, 90, out) }
+			}
+			withContext(Dispatchers.Main) {
+				view?.let { bindCover(it) }
+			}
+		}
+	}
+
 	private fun saveAvatar(uri: Uri) {
 		val context = requireContext()
 		viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -389,5 +483,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
 	private companion object {
 		const val AVATAR_SIZE = 512
+		const val COVER_MAX_SIZE = 1440
 	}
 }
