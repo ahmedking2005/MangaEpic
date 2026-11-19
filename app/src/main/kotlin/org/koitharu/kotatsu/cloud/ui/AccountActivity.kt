@@ -1,9 +1,11 @@
 package org.koitharu.kotatsu.cloud.ui
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
@@ -44,13 +46,11 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		handleOAuthReturn(intent)
 		viewBinding.accountGoogle.setOnClickListener {
 			// Google sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
-			val url = supabase.googleAuthorizeUrl()
-			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+			openOAuthUrl(supabase.googleAuthorizeUrl())
 		}
 		viewBinding.accountFacebook.setOnClickListener {
 			// Facebook sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
-			val url = supabase.facebookAuthorizeUrl()
-			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+			openOAuthUrl(supabase.facebookAuthorizeUrl())
 		}
 		viewBinding.buttonToggleMode.setOnClickListener {
 			isRegisterMode = !isRegisterMode
@@ -92,20 +92,31 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 	}
 
 	/**
+	 * Manga Epic: opens the OAuth authorize page in a Chrome Custom Tab, so the flow
+	 * shares the browser's signed-in sessions (one-tap account pickers) and the redirect
+	 * back into the app is reliable. A plain ACTION_VIEW opens a detached browser page
+	 * instead, where the deep-link return got lost (Facebook sign-in silently failed).
+	 * Falls back to ACTION_VIEW when no Custom Tabs provider is available.
+	 */
+	private fun openOAuthUrl(url: String) {
+		val uri = Uri.parse(url)
+		try {
+			CustomTabsIntent.Builder()
+				.setShowTitle(true)
+				.build()
+				.launchUrl(this, uri)
+		} catch (e: ActivityNotFoundException) {
+			startActivity(Intent(Intent.ACTION_VIEW, uri))
+		}
+	}
+
+	/**
 	 * Manga Epic: auth returns land here on the deep link — OAuth (Google/Facebook)
 	 * with ?code=..., e-mail confirmation with the session in the URL fragment.
 	 */
 	private fun handleOAuthReturn(intent: Intent?) {
 		val uri = intent?.data ?: return
 		if (uri.scheme != "com.mangaepic.app") {
-			return
-		}
-		val code = uri.getQueryParameter("code")
-		if (!code.isNullOrEmpty()) {
-			setBusy(true)
-			lifecycleScope.launch {
-				finishSignIn(supabase.exchangeOAuthCode(code))
-			}
 			return
 		}
 		val params = uri.fragment.orEmpty().split('&').mapNotNull { part ->
@@ -116,6 +127,24 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 				part.substring(0, idx) to Uri.decode(part.substring(idx + 1))
 			}
 		}.toMap()
+		val code = uri.getQueryParameter("code")
+		if (!code.isNullOrEmpty()) {
+			setBusy(true)
+			lifecycleScope.launch {
+				finishSignIn(supabase.exchangeOAuthCode(code))
+			}
+			return
+		}
+		// Manga Epic: a failed flow returns error/error_description in the query (PKCE)
+		// or the fragment — show the provider's actual message instead of failing silently.
+		val oauthError = uri.getQueryParameter("error_description")
+			?: params["error_description"]
+			?: uri.getQueryParameter("error")
+			?: params["error"]
+		if (!oauthError.isNullOrBlank()) {
+			showError(oauthError)
+			return
+		}
 		val accessToken = params["access_token"]
 		val refreshToken = params["refresh_token"]
 		if (!accessToken.isNullOrEmpty() && !refreshToken.isNullOrEmpty()) {
