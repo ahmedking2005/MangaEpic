@@ -1293,4 +1293,7 @@ Optional — skip it and you appear as anon.</string>
 	<string name="account_syncing">Syncing…</string>
 	<string name="account_last_sync">Last sync: %1$s — tap to sync again</string>
 	<string name="account_sync_failed">Sync failed — tap to retry</string>
+	<string name="account_google">Continue with Google</string>
+	<string name="account_facebook">Continue with Facebook</string>
+	<string name="account_google_failed">Google sign-in did not complete. Please try again.</string>
 </resources>
