@@ -118,9 +118,6 @@ class SupabaseClient @Inject constructor(
 	/** Manga Epic: starts the Google OAuth flow (PKCE). Returns the URL to open in the browser. */
 	fun googleAuthorizeUrl(): String = oauthAuthorizeUrl("google")
 
-	/** Manga Epic: starts the Facebook OAuth flow (PKCE). Returns the URL to open in the browser. */
-	fun facebookAuthorizeUrl(): String = oauthAuthorizeUrl("facebook")
-
 	private fun oauthAuthorizeUrl(provider: String): String {
 		val verifier = createPkceVerifier()
 		settings.supabasePkceVerifier = verifier
@@ -133,7 +130,7 @@ class SupabaseClient @Inject constructor(
 			"&code_challenge=$challenge&code_challenge_method=s256"
 	}
 
-	/** Manga Epic: finishes an OAuth flow (Google/Facebook) after the browser redirects back with a code. */
+	/** Manga Epic: finishes an OAuth flow (Google) after the browser redirects back with a code. */
 	suspend fun exchangeOAuthCode(code: String): Result<Boolean> {
 		val verifier = settings.supabasePkceVerifier
 		if (verifier.isEmpty()) {
