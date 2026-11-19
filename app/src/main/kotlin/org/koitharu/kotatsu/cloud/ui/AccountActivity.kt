@@ -131,7 +131,7 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		}
 	}
 
-	private fun finishSignIn(result: Result<Boolean>) {
+	private suspend fun finishSignIn(result: Result<Boolean>) {
 		setBusy(false)
 		when {
 			result.isSuccess && result.getOrNull() == true -> {
