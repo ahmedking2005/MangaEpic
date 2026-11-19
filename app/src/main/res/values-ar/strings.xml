@@ -384,6 +384,9 @@
     <string name="profile_name_hint">اسمك</string>
     <string name="profile_default_name">قارئ</string>
     <string name="profile_last_7_days">آخر 7 أيام</string>
+    <string name="profile_cover">صورة الغلاف</string>
+    <string name="profile_cover_change">اختيار صورة جديدة</string>
+    <string name="profile_cover_remove">إزالة الغلاف</string>
     <string name="theme_name_sakura">ساكورا</string>
     <string name="pause">إيقاف مؤقت</string>
     <string name="show_on_shelf">العرض في الرف</string>
@@ -637,8 +640,8 @@
     <string name="unread">غير مقروءة</string>
     <string name="show_pages_thumbs">إظهار الصور المصغرة للصفحات</string>
     <string name="unsupported_backup_message">الرجاء تحديد ملف النسخ الاحتياطي السليم لKotatsu</string>
-    <string name="minutes_short">%d ش</string>
-    <string name="hours_minutes_short">%1$d س %2$d ش</string>
+    <string name="minutes_short">%d د</string>
+    <string name="hours_minutes_short">%1$d س %2$d د</string>
     <string name="webtoon_gaps">الفجوات في وضع الويبتون</string>
     <string name="location">المكان</string>
     <string name="disable_nsfw_notifications">تعطيل اشعارات NSFW</string>
@@ -694,8 +697,8 @@
     <string name="backup_tg_id_not_set">لم يتم تعيين معرف دردشة Telegram</string>
     <string name="telegram_chat_id">معرف دردشة Telegram</string>
     <string name="open_telegram_bot">فتح روبوت Telegram</string>
-    <string name="seconds_short">%d s</string>
-    <string name="minutes_seconds_short">%1$d m %2$d s</string>
+    <string name="seconds_short">%d ث</string>
+    <string name="minutes_seconds_short">%1$d د %2$d ث</string>
     <string name="plugin_incompatible_with_cause">خطأ في الإضافة: %s\n تأكد من أنك تستخدم أحدث إصدار من الإضافة و كوتاتسو</string>
     <string name="invalid_proxy_configuration">تكوين الوكيل غير صالح</string>
     <string name="skip_all">تخطي الكل</string>
