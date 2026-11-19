@@ -75,7 +75,7 @@ class ScrobblerConfigViewModel @Inject constructor(
 		if (list.isEmpty()) {
 			return listOf(
 				EmptyState(
-					icon = R.drawable.ic_empty_history,
+					icon = R.drawable.img_empty_history,
 					textPrimary = R.string.nothing_here,
 					textSecondary = R.string.scrobbling_empty_hint,
 					actionStringRes = 0,

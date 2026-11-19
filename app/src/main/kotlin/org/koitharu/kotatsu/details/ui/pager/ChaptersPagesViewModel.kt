@@ -43,7 +43,9 @@ import org.koitharu.kotatsu.history.data.HistoryRepository
 import org.koitharu.kotatsu.list.domain.ListFilterOption
 import org.koitharu.kotatsu.local.domain.DeleteLocalMangaUseCase
 import org.koitharu.kotatsu.local.domain.model.LocalManga
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.reader.ui.ReaderActivity
 import org.koitharu.kotatsu.reader.ui.ReaderState
@@ -185,6 +187,12 @@ abstract class ChaptersPagesViewModel(
 	fun performChapterSearch(query: String?) {
 		chaptersQuery.value = query?.trim().orEmpty()
 	}
+
+	val isNovelContent: Boolean
+		get() {
+			val source = mangaDetails.value?.toManga()?.source
+			return source is ParserMangaSource && source.contentType == ContentType.NOVEL
+		}
 
 	fun getMangaOrNull(): Manga? = mangaDetails.value?.toManga()
 

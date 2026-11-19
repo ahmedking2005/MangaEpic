@@ -23,6 +23,13 @@
 		android:title="@string/sources_version" />
 
 	<Preference
+		android:icon="@drawable/ic_data_privacy"
+		android:key="ad_privacy_options"
+		android:persistent="false"
+		android:title="@string/ad_privacy_options"
+		android:visible="false" />
+
+	<Preference
 		android:icon="@drawable/ic_script"
 		android:key="about_github"
 		android:persistent="false"

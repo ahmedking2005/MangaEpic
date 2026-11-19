@@ -89,7 +89,7 @@ class FavouritesContainerFragment : BaseFragment<FragmentFavouritesContainerBind
 
 	override fun onInflate(stub: ViewStub?, inflated: View) {
 		val stubBinding = ItemEmptyStateBinding.bind(inflated)
-		stubBinding.icon.setImageAsync(R.drawable.ic_empty_favourites)
+		stubBinding.icon.setImageAsync(R.drawable.img_empty_favourites)
 		stubBinding.textPrimary.setText(R.string.text_empty_holder_primary)
 		stubBinding.textSecondary.setTextAndVisible(R.string.empty_favourite_categories)
 		stubBinding.buttonRetry.setTextAndVisible(R.string.manage)

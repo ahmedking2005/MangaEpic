@@ -34,6 +34,8 @@ import org.koitharu.kotatsu.search.ui.MangaListActivity
 @AndroidEntryPoint
 class RemoteListFragment : MangaListFragment(), FilterCoordinator.Owner, View.OnClickListener {
 
+	override val showNativeAds = true
+
     override val viewModel by viewModels<RemoteListViewModel>()
 
     override val filterCoordinator: FilterCoordinator

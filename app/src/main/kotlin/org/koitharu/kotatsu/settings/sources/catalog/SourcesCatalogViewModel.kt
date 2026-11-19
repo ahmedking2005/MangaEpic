@@ -152,13 +152,13 @@ class SourcesCatalogViewModel @Inject constructor(
 			listOf(
 				if (query == null) {
 					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_empty_feed,
+						icon = R.drawable.img_empty_feed,
 						title = R.string.no_manga_sources,
 						text = R.string.no_manga_sources_catalog_text,
 					)
 				} else {
 					SourceCatalogItem.Hint(
-						icon = R.drawable.ic_empty_feed,
+						icon = R.drawable.img_empty_feed,
 						title = R.string.nothing_found,
 						text = R.string.no_manga_sources_found,
 					)

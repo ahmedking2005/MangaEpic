@@ -94,7 +94,7 @@ class RelatedListViewModel @Inject constructor(
 	}
 
 	private fun createEmptyState() = EmptyState(
-		icon = R.drawable.ic_empty_common,
+		icon = R.drawable.img_empty_common,
 		textPrimary = R.string.nothing_found,
 		textSecondary = 0,
 		actionStringRes = 0,

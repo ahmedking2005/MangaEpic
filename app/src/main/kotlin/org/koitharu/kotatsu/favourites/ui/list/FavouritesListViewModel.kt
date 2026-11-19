@@ -192,14 +192,14 @@ class FavouritesListViewModel @Inject constructor(
 
 	private fun getEmptyState(hasFilters: Boolean) = if (hasFilters) {
 		EmptyState(
-			icon = R.drawable.ic_empty_favourites,
+			icon = R.drawable.img_empty_favourites,
 			textPrimary = R.string.nothing_found,
 			textSecondary = R.string.text_empty_holder_secondary_filtered,
 			actionStringRes = R.string.reset_filter,
 		)
 	} else {
 		EmptyState(
-			icon = R.drawable.ic_empty_favourites,
+			icon = R.drawable.img_empty_favourites,
 			textPrimary = R.string.text_empty_holder_primary,
 			textSecondary = if (categoryId == NO_ID) {
 				R.string.you_have_not_favourites_yet

@@ -145,6 +145,13 @@
 			</intent-filter>
 		</activity>
 		<activity
+			android:name="org.koitharu.kotatsu.anime.player.AnimePlayerActivity"
+			android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+			android:exported="false"
+			android:hardwareAccelerated="true"
+			android:screenOrientation="fullSensor"
+			android:supportsPictureInPicture="true" />
+		<activity
 			android:name="org.koitharu.kotatsu.reader.ui.ReaderActivity"
 			android:exported="true">
 			<intent-filter>
@@ -1747,6 +1754,9 @@
 		<meta-data
 			android:name="com.google.firebase.messaging.default_notification_icon"
 			android:resource="@drawable/ic_notification" />
+		<meta-data
+			android:name="com.google.android.gms.ads.APPLICATION_ID"
+			android:value="${admobAppId}" />
 	</application>
 
 </manifest>
