@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.cloud.ui
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -45,11 +44,13 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		handleOAuthReturn(intent)
 		viewBinding.accountGoogle.setOnClickListener {
 			// Google sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
-			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(supabase.googleAuthorizeUrl())))
+			val url = supabase.googleAuthorizeUrl()
+			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
 		}
 		viewBinding.accountFacebook.setOnClickListener {
 			// Facebook sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
-			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(supabase.facebookAuthorizeUrl())))
+			val url = supabase.facebookAuthorizeUrl()
+			startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
 		}
 		viewBinding.buttonToggleMode.setOnClickListener {
 			isRegisterMode = !isRegisterMode
@@ -99,14 +100,6 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		if (uri.scheme != "com.mangaepic.app") {
 			return
 		}
-		val params = uri.fragment.orEmpty().split('&').mapNotNull { part ->
-			val idx = part.indexOf('=')
-			if (idx <= 0) {
-				null
-			} else {
-				part.substring(0, idx) to Uri.decode(part.substring(idx + 1))
-			}
-		}.toMap()
 		val code = uri.getQueryParameter("code")
 		if (!code.isNullOrEmpty()) {
 			setBusy(true)
@@ -115,6 +108,14 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 			}
 			return
 		}
+		val params = uri.fragment.orEmpty().split('&').mapNotNull { part ->
+			val idx = part.indexOf('=')
+			if (idx <= 0) {
+				null
+			} else {
+				part.substring(0, idx) to Uri.decode(part.substring(idx + 1))
+			}
+		}.toMap()
 		val accessToken = params["access_token"]
 		val refreshToken = params["refresh_token"]
 		if (!accessToken.isNullOrEmpty() && !refreshToken.isNullOrEmpty()) {
