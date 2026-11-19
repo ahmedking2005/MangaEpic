@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.core.model.MangaSource
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.core.model.isNsfw
+import org.koitharu.kotatsu.core.parser.bundle.ActiveParsers
 import org.koitharu.kotatsu.core.util.ext.isHttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
@@ -14,6 +15,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import org.koitharu.kotatsu.parsers.util.almostEquals
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import org.koitharu.kotatsu.parsers.util.levenshteinDistance
@@ -58,7 +60,13 @@ class MangaLinkResolver @Inject constructor(
 		dataRepository.findMangaByPublicUrl(uri)?.let {
 			return it
 		}
-		return context.resolveLink(uri)
+		// The link resolver of the parsers matches a link against every source of the bundle, the ones this
+		// app does not offer included, and fetches through the parser itself. A link only resolves here if
+		// it belongs to a source the app offers.
+		return context.resolveLink(uri)?.takeIf { manga ->
+			val source = manga.source
+			source !is ParserMangaSource || source in ActiveParsers.workingSources
+		}
 	}
 
 	private suspend fun MangaRepository.findExact(url: String?, title: String?): Manga? {
