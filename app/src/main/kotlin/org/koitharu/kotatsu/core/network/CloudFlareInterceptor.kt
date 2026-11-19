@@ -11,9 +11,20 @@ import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
 class CloudFlareInterceptor : Interceptor {
 
 	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val response = chain.proceed(request)
-		return when (CloudFlareHelper.checkResponseForProtection(response)) {
+		val response = chain.proceed(chain.request())
+		// Use the request that actually reached the network. Interceptors deeper in the
+		// chain add the parser source, User-Agent and may follow a redirect. Reusing the
+		// outer request here made the CAPTCHA WebView solve a different fingerprint/URL.
+		val request = response.request
+		// Some old Android decoders throw from jsoup while peeking at a malformed or
+		// truncated response body. That must not turn an otherwise usable response into
+		// a fatal application crash; the actual parser can still handle/report the body.
+		val protection = try {
+			CloudFlareHelper.checkResponseForProtection(response)
+		} catch (_: IllegalArgumentException) {
+			return response
+		}
+		return when (protection) {
 			CloudFlareHelper.PROTECTION_BLOCKED -> response.closeThrowing(
 				CloudFlareBlockedException(
 					url = request.url.toString(),
