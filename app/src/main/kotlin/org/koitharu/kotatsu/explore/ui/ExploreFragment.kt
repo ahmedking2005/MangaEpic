@@ -44,6 +44,7 @@ import org.koitharu.kotatsu.explore.ui.adapter.ExploreListEventListener
 import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.list.ui.adapter.TypedListSpacingDecoration
 import org.koitharu.kotatsu.list.ui.model.ListHeader
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 
@@ -84,6 +85,7 @@ class ExploreFragment :
 			checkNotNull(sourceSelectionController).attachToRecyclerView(this)
 		}
 		addMenuProvider(ExploreMenuProvider(requireContext(), router))
+		setupContentTypeChips(binding)
 		viewModel.content.observe(viewLifecycleOwner, checkNotNull(exploreAdapter))
 		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(binding.recyclerView, this))
 		viewModel.onOpenManga.observeEvent(viewLifecycleOwner, ::onOpenManga)
@@ -110,6 +112,30 @@ class ExploreFragment :
 		super.onDestroyView()
 		sourceSelectionController = null
 		exploreAdapter = null
+	}
+
+	/** Manga Epic: content-type chips (All / Manga / Novel / Anime) filter the sources section. */
+	private fun setupContentTypeChips(binding: FragmentExploreBinding) {
+		// Restore the checked chip from the ViewModel before wiring the listener,
+		// so a recreated view reflects the still-active filter.
+		binding.chipGroupContentType.check(
+			when (viewModel.contentTypeFilter.value) {
+				ContentType.MANGA -> R.id.chip_filter_manga
+				ContentType.NOVEL -> R.id.chip_filter_novel
+				ContentType.ANIME -> R.id.chip_filter_anime
+				else -> R.id.chip_filter_all
+			},
+		)
+		binding.chipGroupContentType.setOnCheckedStateChangeListener { _, checkedIds ->
+			viewModel.setContentTypeFilter(
+				when (checkedIds.firstOrNull()) {
+					R.id.chip_filter_manga -> ContentType.MANGA
+					R.id.chip_filter_novel -> ContentType.NOVEL
+					R.id.chip_filter_anime -> ContentType.ANIME
+					else -> null
+				},
+			)
+		}
 	}
 
 	override fun onListHeaderClick(item: ListHeader, view: View) {
