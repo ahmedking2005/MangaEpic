@@ -44,13 +44,20 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
+import org.koitharu.kotatsu.ads.AdMobManager
 import org.koitharu.kotatsu.anime.data.AnimePlaybackRepository
 import org.koitharu.kotatsu.anime.data.AnimeStreamSelector
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableChapter
@@ -96,6 +103,10 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 	private var selectedStreamIndex = 0
 	private var player: ExoPlayer? = null
 	private var trackSelector: DefaultTrackSelector? = null
+	private var pauseBannerAdView: AdView? = null
+	private var isPauseBannerLoaded = false
+	private var isPauseBannerDismissed = false
+	private val hidePauseBannerRunnable = Runnable { hidePauseBanner() }
 	private var resumePositionMs = 0L
 	private var loadJob: Job? = null
 	private var streamRefreshAttempts = 0
@@ -162,6 +173,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 
 		setupModernPlayerUi()
 		setupPlayerActions()
+		setupPauseBanner()
 		updateTitle()
 		updateQuickControls()
 		applyControlsLockState(showMessage = false)
@@ -186,6 +198,65 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		viewBinding.textServerBadge.setOnClickListener { showServers() }
 		viewBinding.buttonPlayerSettings.bringToFront()
 		viewBinding.buttonControlsLock.bringToFront()
+	}
+
+	/**
+	 * Manga Epic: pause banner (Ahmed's spec) — a banner ad overlay that appears
+	 * only when the user pauses playback. Resuming hides it after a 3-second
+	 * tail; the close button dismisses it for the rest of the current stream.
+	 * Gated by the same ads_enabled kill-switch as every other ad surface, and
+	 * it never blocks playback: with no loaded ad, nothing is shown.
+	 */
+	private fun setupPauseBanner() {
+		if (!AdMobManager.isEnabled()) return
+		val adView = AdView(this)
+		adView.adUnitId = BuildConfig.ADMOB_ANIME_PAUSE_BANNER_ID
+		adView.setAdSize(AdSize.BANNER)
+		adView.adListener = object : AdListener() {
+			override fun onAdLoaded() {
+				isPauseBannerLoaded = true
+			}
+
+			override fun onAdFailedToLoad(error: LoadAdError) {
+				isPauseBannerLoaded = false
+			}
+		}
+		viewBinding.pauseBannerAdSlot.addView(adView)
+		pauseBannerAdView = adView
+		viewBinding.buttonClosePauseBanner.setOnClickListener {
+			isPauseBannerDismissed = true
+			hidePauseBanner()
+		}
+		adView.loadAd(AdRequest.Builder().build())
+	}
+
+	private fun maybeShowPauseBanner() {
+		val exoPlayer = player ?: return
+		if (!hasPlaybackStarted) return
+		if (exoPlayer.playWhenReady) return // buffering stall, not a user pause
+		if (exoPlayer.playbackState != Player.STATE_READY) return
+		if (isPauseBannerDismissed || !isPauseBannerLoaded) return
+		if (!AdMobManager.isEnabled()) return
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) return
+		viewBinding.pauseBannerContainer.removeCallbacks(hidePauseBannerRunnable)
+		viewBinding.pauseBannerContainer.isVisible = true
+	}
+
+	private fun schedulePauseBannerHide() {
+		if (!hasViewBinding()) return
+		viewBinding.pauseBannerContainer.removeCallbacks(hidePauseBannerRunnable)
+		if (viewBinding.pauseBannerContainer.isVisible) {
+			viewBinding.pauseBannerContainer.postDelayed(
+				hidePauseBannerRunnable,
+				PAUSE_BANNER_RESUME_HIDE_DELAY_MS,
+			)
+		}
+	}
+
+	private fun hidePauseBanner() {
+		if (!hasViewBinding()) return
+		viewBinding.pauseBannerContainer.removeCallbacks(hidePauseBannerRunnable)
+		viewBinding.pauseBannerContainer.isVisible = false
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
@@ -374,6 +445,8 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 
 	private fun playStream(index: Int, positionMs: Long) {
 		val stream = streams.getOrNull(index) ?: return
+		isPauseBannerDismissed = false
+		hidePauseBanner()
 		releasePlayer(saveProgress = false)
 		selectedStreamIndex = index
 		updateQuickControls()
@@ -401,7 +474,12 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 				viewBinding.playerView.player = exoPlayer
 				exoPlayer.addListener(object : Player.Listener {
 					override fun onIsPlayingChanged(isPlaying: Boolean) {
-						if (isPlaying) hasPlaybackStarted = true
+						if (isPlaying) {
+							hasPlaybackStarted = true
+							schedulePauseBannerHide()
+						} else {
+							maybeShowPauseBanner()
+						}
 					}
 
 					override fun onPlayerError(error: PlaybackException) {
@@ -410,6 +488,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 					}
 
 						override fun onPlaybackStateChanged(playbackState: Int) {
+						if (playbackState == Player.STATE_ENDED) hidePauseBanner()
 						if (playbackState == Player.STATE_ENDED && autoPlayNextEpisode) {
 							moveEpisode(1, showBoundaryMessage = false)
 						}
@@ -928,6 +1007,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		}
 		player = null
 		trackSelector = null
+		hidePauseBanner()
 		if (hasViewBinding()) viewBinding.playerView.player = null
 	}
 
@@ -1009,6 +1089,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 
 	override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
 		super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+		hidePauseBanner()
 		viewBinding.appbar.isVisible = !isInPictureInPictureMode && !controlsLocked
 		viewBinding.quickControls.isVisible = false
 		viewBinding.buttonPlayerSettings.isVisible = !isInPictureInPictureMode && !controlsLocked
@@ -1043,6 +1124,9 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		loadJob?.cancel()
 		if (hasViewBinding()) viewBinding.gestureFeedback.removeCallbacks(hideGestureFeedback)
 		if (hasViewBinding()) viewBinding.buttonControlsLock.removeCallbacks(hideLockedControl)
+		if (hasViewBinding()) viewBinding.pauseBannerContainer.removeCallbacks(hidePauseBannerRunnable)
+		pauseBannerAdView?.destroy()
+		pauseBannerAdView = null
 		releasePlayer(saveProgress = false)
 		super.onDestroy()
 	}
@@ -1114,6 +1198,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		private const val CONTROLLER_TIMEOUT_MS = 3500
 		private const val SEEK_INCREMENT_MS = 10_000L
 		private const val GESTURE_FEEDBACK_TIMEOUT_MS = 850L
+		private const val PAUSE_BANNER_RESUME_HIDE_DELAY_MS = 3_000L
 		private const val MAX_STREAM_REFRESH_ATTEMPTS = 3
 		private const val STREAM_REFRESH_RETRY_DELAY_MS = 650L
 		private const val GESTURE_SENSITIVITY = 1.35f
