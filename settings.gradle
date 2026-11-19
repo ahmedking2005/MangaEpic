@@ -30,3 +30,16 @@ dependencyResolutionManagement {
 
 include ':app'
 rootProject.name = "Kotatsu"
+
+// Manga Epic: the maintained parsers fork is bundled with this repository
+// (kotatsu-parsers/) so a checkout contains the complete source used by the
+// application, including the Manga Epic contract extensions (anime/novels)
+// and the Arabic sources that only exist in our fork.
+def localParsers = file('kotatsu-parsers')
+if (localParsers.isDirectory()) {
+	includeBuild(localParsers) {
+		dependencySubstitution {
+			substitute module('com.github.clquwu:kotatsu-parsers-redo') using project(':')
+		}
+	}
+}
