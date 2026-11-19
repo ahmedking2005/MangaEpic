@@ -265,8 +265,51 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 	}
 
+	/** Manga Epic: screen position of the profile icon, for the reveal animation. */
+	private var profileRevealCenter: android.graphics.PointF? = null
+
+	fun hasProfileRevealCenter(): Boolean = profileRevealCenter != null
+
+	fun consumeProfileRevealCenter(): android.graphics.PointF? {
+		val center = profileRevealCenter
+		profileRevealCenter = null
+		return center
+	}
+
+	/** Manga Epic: the Profile page is immersive — while it is open, the search bar
+	 *  and the bottom navigation hide, exactly like entering Settings. */
+	fun setProfileChromeHidden(hidden: Boolean) {
+		viewBinding.appbar.isVisible = !hidden
+		viewBinding.bottomNav?.isVisible = !hidden
+		viewBinding.navRail?.isVisible = !hidden
+	}
+
+	private fun findProfileIconCenter(): android.graphics.PointF {
+		val bar = viewBinding.searchBar
+		val title = getString(R.string.profile)
+		val stack = ArrayDeque<View>()
+		stack.add(bar)
+		while (stack.isNotEmpty()) {
+			val v = stack.removeLast()
+			if (v.contentDescription?.toString() == title && v.width > 0) {
+				val loc = IntArray(2)
+				v.getLocationOnScreen(loc)
+				return android.graphics.PointF(loc[0] + v.width / 2f, loc[1] + v.height / 2f)
+			}
+			if (v is android.view.ViewGroup) {
+				for (i in 0 until v.childCount) {
+					stack.add(v.getChildAt(i))
+				}
+			}
+		}
+		val loc = IntArray(2)
+		bar.getLocationOnScreen(loc)
+		return android.graphics.PointF(loc[0] + bar.width * 0.3f, loc[1] + bar.height / 2f)
+	}
+
 	/** Manga Epic: open the Profile tab (used by the Latest Updates top-bar action). */
 	fun openProfile() {
+		profileRevealCenter = findProfileIconCenter()
 		navigationDelegate.openItem(R.id.nav_profile)
 		val inBar = bottomNav?.menu?.findItem(R.id.nav_profile) != null ||
 			viewBinding.navRail?.menu?.findItem(R.id.nav_profile) != null
