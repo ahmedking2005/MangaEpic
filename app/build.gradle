@@ -359,5 +359,23 @@ gradle.buildFinished { result ->
             depth++
         }
         f.stackTrace.take(12).each { println("::error::DIAGSTACK " + it.toString().take(300)) }
+        // Surface Kotlin compiler errors: kotlinc messages land in the Kotlin
+        // daemon log(s) under java.io.tmpdir; echo the error lines as annotations.
+        try {
+            def shown = 0
+            def tmp = new File(System.getProperty('java.io.tmpdir'))
+            def logs = tmp.listFiles()?.findAll { it.name.startsWith('kotlin-daemon') }?.sort { it.lastModified() }?.reverse()?.take(2) ?: []
+            logs.each { log ->
+                log.eachLine('UTF-8') { line ->
+                    if (shown < 45 && line.contains('.kt') && (line.contains('error:') || line.contains('Unresolved') || line.contains(' e: '))) {
+                        println("::error::KOTLINC " + line.replace('%', '%25').replace('\r', '').take(900))
+                        shown++
+                    }
+                }
+            }
+            println("::error::KOTLINC shown=" + shown + " logs=" + logs.collect { it.name })
+        } catch (Throwable t) {
+            println("::error::KOTLINC hook failed: " + t.toString().take(300))
+        }
     }
 }
