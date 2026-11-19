@@ -95,6 +95,7 @@ android {
 		buildConfigField 'String', 'ADMOB_FEED_NATIVE_ID', '\"ca-app-pub-7796667973395558/1383470984\"'
 		buildConfigField 'String', 'ADMOB_DETAILS_NATIVE_ID', '\"ca-app-pub-7796667973395558/8092736608\"'
 		buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '\"ca-app-pub-7796667973395558/1076349223\"'
+		buildConfigField 'String', 'ADMOB_ANIME_PAUSE_BANNER_ID', '\"ca-app-pub-7796667973395558/8699155547\"'
 
 		// Where parsers newer than the ones built in are published, and the public half of the key they are signed
 		// with: see docs/BUNDLE.md in the parsers repository. Whoever holds the private half can run code in every
