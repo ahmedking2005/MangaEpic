@@ -75,3 +75,18 @@ dependencies {
 
     ksp(project(":kotatsu-parsers-ksp"))
 }
+
+// Manga Epic diagnostic: surface the build failure as check annotations.
+gradle.buildFinished {
+    val f = failure
+    if (f != null) {
+        var e: Throwable? = f
+        var depth = 0
+        while (e != null && depth < 6) {
+            println("::error::DIAGFAIL d=" + depth + " " + e.toString().replace("%", "%25").replace("\n", " | ").take(900))
+            e = e.cause
+            depth++
+        }
+        f.stackTrace.take(12).forEach { println("::error::DIAGSTACK " + it.toString().take(300)) }
+    }
+}
