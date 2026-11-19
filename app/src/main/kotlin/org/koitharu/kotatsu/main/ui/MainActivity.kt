@@ -22,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.children
 import androidx.core.view.inputmethod.EditorInfoCompat
 import androidx.core.view.isInvisible
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
 import androidx.core.view.marginBottom
 import androidx.core.view.updateLayoutParams
@@ -282,6 +283,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		viewBinding.appbar.isVisible = !hidden
 		viewBinding.bottomNav?.isVisible = !hidden
 		viewBinding.navRail?.isVisible = !hidden
+		// Manga Epic: while the chrome is hidden, the AppBarLayout is GONE but the fragment
+		// container still carries its ScrollingViewBehavior, which keeps treating the
+		// (zero-height) app bar as a nested-scrolling dependency and swallows the Profile
+		// page's own scrolling. Detach the behaviour so the page gets the full height and
+		// scrolls on its own; restore it for the regular tabs, which rely on it.
+		val params = viewBinding.container.layoutParams as? CoordinatorLayout.LayoutParams
+		if (params != null) {
+			if (hidden) {
+				if (params.behavior != null) {
+					params.behavior = null
+					viewBinding.container.layoutParams = params
+				}
+			} else if (params.behavior == null) {
+				params.behavior = AppBarLayout.ScrollingViewBehavior()
+				viewBinding.container.layoutParams = params
+			}
+		}
 	}
 
 	private fun findProfileIconCenter(): android.graphics.PointF {
