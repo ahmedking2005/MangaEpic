@@ -48,10 +48,6 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 			// Google sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
 			openOAuthUrl(supabase.googleAuthorizeUrl())
 		}
-		viewBinding.accountFacebook.setOnClickListener {
-			// Facebook sign-in runs in the browser (OAuth + PKCE) and returns via deep link.
-			openOAuthUrl(supabase.facebookAuthorizeUrl())
-		}
 		viewBinding.buttonToggleMode.setOnClickListener {
 			isRegisterMode = !isRegisterMode
 			bindMode()
@@ -95,7 +91,7 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 	 * Manga Epic: opens the OAuth authorize page in a Chrome Custom Tab, so the flow
 	 * shares the browser's signed-in sessions (one-tap account pickers) and the redirect
 	 * back into the app is reliable. A plain ACTION_VIEW opens a detached browser page
-	 * instead, where the deep-link return got lost (Facebook sign-in silently failed).
+	 * instead, where the deep-link return got lost (Google sign-in silently failed).
 	 * Falls back to ACTION_VIEW when no Custom Tabs provider is available.
 	 */
 	private fun openOAuthUrl(url: String) {
@@ -111,7 +107,7 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 	}
 
 	/**
-	 * Manga Epic: auth returns land here on the deep link — OAuth (Google/Facebook)
+	 * Manga Epic: auth returns land here on the deep link — OAuth (Google)
 	 * with ?code=..., e-mail confirmation with the session in the URL fragment.
 	 */
 	private fun handleOAuthReturn(intent: Intent?) {
@@ -251,7 +247,6 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		viewBinding.buttonSubmit.isEnabled = !busy
 		viewBinding.buttonToggleMode.isEnabled = !busy
 		viewBinding.accountGoogle.isEnabled = !busy
-		viewBinding.accountFacebook.isEnabled = !busy
 	}
 
 	private fun showError(message: String) {
