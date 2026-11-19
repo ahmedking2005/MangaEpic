@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Manga Epic: in-app defaults for Firebase Remote Config. Mirror the console template. -->
+<!-- Diag cycle 2026-11-19: hook v2 surfaces kotlinc errors (no semantic change). -->
 <defaultsMap>
 	<entry>
 		<key>maintenance_mode</key>
