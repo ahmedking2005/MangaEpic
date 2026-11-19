@@ -136,6 +136,34 @@ class SupabaseClient @Inject constructor(
 		)
 	}
 
+	/**
+	 * Manga Epic: completes an e-mail confirmation return. The verify link lands on
+	 * the app deep link with the session in the URL fragment; the tokens are stored
+	 * and the user is resolved from the auth server to finish the sign-in.
+	 */
+	suspend fun completeSessionFromTokens(
+		accessToken: String,
+		refreshToken: String,
+		expiresInSeconds: Long,
+	): Result<Boolean> {
+		settings.supabaseAccessToken = accessToken
+		settings.supabaseRefreshToken = refreshToken
+		settings.supabaseTokenExpiresAt = System.currentTimeMillis() + expiresInSeconds * 1000L
+		return request("/auth/v1/user", "GET", null, useSessionToken = true).mapCatching { body ->
+			val obj = json.decodeFromString(JsonElement.serializer(), body)
+				as? kotlinx.serialization.json.JsonObject
+				?: throw IOException("Unexpected user response")
+			val id = (obj["id"] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty()
+			if (id.isEmpty()) {
+				throw IOException("Missing user id")
+			}
+			settings.supabaseUserId = id
+			settings.supabaseUserEmail =
+				(obj["email"] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty()
+			true
+		}.onFailure { clearSession() }
+	}
+
 	private fun createPkceVerifier(): String {
 		val bytes = ByteArray(48)
 		SecureRandom().nextBytes(bytes)
