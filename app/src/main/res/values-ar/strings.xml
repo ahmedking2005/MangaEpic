@@ -1237,4 +1237,17 @@
 	<string name="account_google">المتابعة باستخدام جوجل</string>
 	<string name="account_facebook">المتابعة باستخدام فيسبوك</string>
 	<string name="account_google_failed">تسجيل الدخول بجوجل مكمّلش. حاول تاني.</string>
+	<string name="google_drive_backup">النسخ الاحتياطي إلى Google Drive</string>
+	<string name="google_account">حساب Google</string>
+	<string name="backup_drive_not_connected">غير متصل — اضغط للاتصال</string>
+	<string name="google_drive_auto_upload">رفع النسخ الدورية تلقائيًا</string>
+	<string name="google_drive_auto_summary">بعد كل نسخة احتياطية دورية، تُرفع نسخة إلى مجلد التطبيق الخاص في Google Drive بتاعك.</string>
+	<string name="backup_drive_now">نسخ احتياطي الآن</string>
+	<string name="backup_drive_restore">استعادة من Drive</string>
+	<string name="backup_drive_disconnect">قطع اتصال الحساب</string>
+	<string name="backup_drive_connected">تم الاتصال بـ Google Drive</string>
+	<string name="backup_drive_uploaded">تم رفع النسخة الاحتياطية إلى Google Drive</string>
+	<string name="backup_drive_no_backup">لا توجد نسخة احتياطية في Google Drive</string>
+	<string name="backup_drive_restoring">جارٍ استعادة النسخة من Google Drive…</string>
+	<string name="backup_drive_last">آخر نسخة على Drive: %s</string>
 </resources>
