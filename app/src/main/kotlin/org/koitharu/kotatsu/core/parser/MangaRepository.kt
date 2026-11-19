@@ -92,15 +92,17 @@ interface MangaRepository {
 		}
 
 		private fun createRepository(source: MangaSource): MangaRepository? = when (source) {
-			is ParserMangaSource -> if (ActiveParsers.findSource(source.name) != null) {
+			is ParserMangaSource -> if (source in ActiveParsers.workingSources) {
 				ParserMangaRepository(
 					parser = LiveMangaParser(source.name, loaderContext, parsersUpdater),
 					cache = contentCache,
 					mirrorSwitcher = mirrorSwitcher,
 				)
 			} else {
-				// A source of parsers that are not in use any more, held on to by whoever asks. Not kept: the next
-				// parsers may have it again
+				// Not one of the sources this app offers: either it is not in the parsers in use at all, or the
+				// fence in ActiveParsers keeps it out (not Arabic, hentai, removed by name, or broken). Whoever
+				// asks — a link, a stored manga, a sync row — gets no repository for it, so its content cannot
+				// be fetched even though a parser for it may exist in the bundle.
 				null
 			}
 
