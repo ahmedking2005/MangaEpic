@@ -39,8 +39,10 @@ import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingState
 import org.koitharu.kotatsu.list.ui.model.MangaCompactListModel
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import org.koitharu.kotatsu.sourcescore.domain.SourceRanker
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.suggestions.domain.SuggestionRepository
@@ -81,6 +83,17 @@ class ExploreViewModel @Inject constructor(
 	).flatMapLatest { id ->
 		if (id == 0L) flowOf(null) else presetsRepository.observe(id)
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.Eagerly, null)
+
+	/**
+	 * Manga Epic: Explore content-type filter (chips above the sources section).
+	 * null = All. Held in the ViewModel only — it survives configuration changes
+	 * but is not persisted; entering Explore starts on All.
+	 */
+	val contentTypeFilter = MutableStateFlow<ContentType?>(null)
+
+	fun setContentTypeFilter(type: ContentType?) {
+		contentTypeFilter.value = type
+	}
 
 	val onOpenManga = MutableEventFlow<Manga>()
 	val onActionDone = MutableEventFlow<ReversibleAction>()
@@ -174,8 +187,8 @@ class ExploreViewModel @Inject constructor(
 		}
 	}
 
-	private fun observeSourcesForDisplay(): Flow<List<MangaSourceInfo>> =
-		activePresetFlow.flatMapLatest { preset: SourcePreset? ->
+	private fun observeSourcesForDisplay(): Flow<List<MangaSourceInfo>> {
+		val unfiltered = activePresetFlow.flatMapLatest { preset: SourcePreset? ->
 			if (preset != null) {
 				// Same ordering rules as the enabled list, and re-sorted when scores download.
 				combine(
@@ -188,6 +201,16 @@ class ExploreViewModel @Inject constructor(
 				sourcesRepository.observeEnabledSources()
 			}
 		}
+		// The chips filter by each parser's own contentType; sources without one
+		// (local/external) appear only under All.
+		return combine(unfiltered, contentTypeFilter) { sources, type ->
+			if (type == null) {
+				sources
+			} else {
+				sources.filter { (it.mangaSource as? ParserMangaSource)?.contentType == type }
+			}
+		}
+	}
 
 	private fun getPresetSources(preset: SourcePreset): List<MangaSourceInfo> {
 		if (preset.sources.isEmpty()) return emptyList()
