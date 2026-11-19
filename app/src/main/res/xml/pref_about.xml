@@ -5,12 +5,6 @@
 	android:title="@string/about">
 
 	<Preference
-		android:key="about_brand"
-		android:layout="@layout/pref_about_header"
-		android:persistent="false"
-		android:selectable="false" />
-
-	<Preference
 		android:icon="@drawable/ic_info_outline"
 		android:key="app_version"
 		android:persistent="false"
