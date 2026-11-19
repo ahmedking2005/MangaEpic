@@ -68,6 +68,7 @@ class TypedListSpacingDecoration(
 			ListItemType.INFO,
 			ListItemType.DISCOVER_RANKED,
 			ListItemType.DISCOVER_ROW,
+			ListItemType.NATIVE_AD,
 			null,
 				-> outRect.set(0)
 
