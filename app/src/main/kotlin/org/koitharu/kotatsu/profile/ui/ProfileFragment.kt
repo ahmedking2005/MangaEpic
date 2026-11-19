@@ -31,6 +31,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import coil3.ImageLoader
 import coil3.request.ImageRequest
+import coil3.request.error
+import coil3.request.placeholder
+import coil3.request.target
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.enqueueWith
 import org.koitharu.kotatsu.cloud.LibrarySync
@@ -71,6 +74,15 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 	@Inject
 	lateinit var syncScheduler: org.koitharu.kotatsu.cloud.LibrarySyncWorker.Scheduler
 
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		// Manga Epic: opened from the top-bar icon, the page reveals itself with an
+		// expanding circle from that icon instead of the default tab fade.
+		if ((activity as? org.koitharu.kotatsu.main.ui.MainActivity)?.hasProfileRevealCenter() == true) {
+			enterTransition = null
+		}
+	}
+
 	private val viewModel by viewModels<ProfileViewModel>()
 
 	private val accountLauncher = registerForActivityResult(
@@ -92,6 +104,31 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
+		// Manga Epic: immersive page — the search bar and the bottom navigation
+		// hide while the profile is open, exactly like entering Settings.
+		val mainActivity = activity as? org.koitharu.kotatsu.main.ui.MainActivity
+		mainActivity?.setProfileChromeHidden(true)
+		val revealCenter = mainActivity?.consumeProfileRevealCenter()
+		if (revealCenter != null) {
+			view.visibility = View.INVISIBLE
+			view.viewTreeObserver.addOnPreDrawListener(object : android.view.ViewTreeObserver.OnPreDrawListener {
+				override fun onPreDraw(): Boolean {
+					view.viewTreeObserver.removeOnPreDrawListener(this)
+					val loc = IntArray(2)
+					view.getLocationOnScreen(loc)
+					val radius = kotlin.math.hypot(view.width.toDouble(), view.height.toDouble()).toFloat()
+					view.visibility = View.VISIBLE
+					android.view.ViewAnimationUtils.createCircularReveal(
+						view,
+						(revealCenter.x - loc[0]).toInt(),
+						(revealCenter.y - loc[1]).toInt(),
+						0f,
+						radius,
+					).setDuration(450).start()
+					return true
+				}
+			})
+		}
 		// Manga Epic: the banner and the avatar ring take the active colour scheme's primary
 		// colour, so the whole page recolours when the user switches schemes.
 		val primary = MaterialColors.getColor(view, appcompatR.attr.colorPrimary)
@@ -228,6 +265,12 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 			}
 			bindSyncStatus(root)
 		}
+	}
+
+	override fun onDestroyView() {
+		// Manga Epic: leaving the profile brings the bars back.
+		(activity as? org.koitharu.kotatsu.main.ui.MainActivity)?.setProfileChromeHidden(false)
+		super.onDestroyView()
 	}
 
 	override fun onResume() {
