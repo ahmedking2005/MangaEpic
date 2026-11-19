@@ -348,34 +348,37 @@ dependencies {
 }
 
 // Manga Epic diagnostic: surface the build failure as check annotations.
+// GitHub caps workflow-command annotations at 10 per step, so the Kotlin
+// compiler errors (scanned from the Kotlin daemon log) print FIRST.
 gradle.buildFinished { result ->
     def f = result.failure
     if (f != null) {
-        def e = f
-        def depth = 0
-        while (e != null && depth < 6) {
-            println("::error::DIAGFAIL d=" + depth + " " + e.toString().replace("%", "%25").replace("\n", " | ").take(900))
-            e = e.cause
-            depth++
-        }
-        f.stackTrace.take(12).each { println("::error::DIAGSTACK " + it.toString().take(300)) }
-        // Surface Kotlin compiler errors: kotlinc messages land in the Kotlin
-        // daemon log(s) under java.io.tmpdir; echo the error lines as annotations.
         try {
             def shown = 0
+            def total = 0
             def tmp = new File(System.getProperty('java.io.tmpdir'))
             def logs = tmp.listFiles()?.findAll { it.name.startsWith('kotlin-daemon') }?.sort { it.lastModified() }?.reverse()?.take(2) ?: []
             logs.each { log ->
                 log.eachLine('UTF-8') { line ->
-                    if (shown < 45 && line.contains('.kt') && (line.contains('error:') || line.contains('Unresolved') || line.contains(' e: '))) {
-                        println("::error::KOTLINC " + line.replace('%', '%25').replace('\r', '').take(900))
-                        shown++
+                    if (line.contains('.kt') && (line.contains('error:') || line.contains('Unresolved') || line.contains(' e: '))) {
+                        total++
+                        if (shown < 5) {
+                            println("::error::KOTLINC " + line.replace('%', '%25').replace('\r', '').take(900))
+                            shown++
+                        }
                     }
                 }
             }
-            println("::error::KOTLINC shown=" + shown + " logs=" + logs.collect { it.name })
+            println("::error::KOTLINC shown=" + shown + " total=" + total + " logs=" + logs.collect { it.name })
         } catch (Throwable t) {
             println("::error::KOTLINC hook failed: " + t.toString().take(300))
+        }
+        def e = f
+        def depth = 0
+        while (e != null && depth < 4) {
+            println("::error::DIAGFAIL d=" + depth + " " + e.toString().replace("%", "%25").replace("\n", " | ").take(900))
+            e = e.cause
+            depth++
         }
     }
 }
