@@ -27,7 +27,9 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 		super.onViewBindingCreated(binding, savedInstanceState)
 		readerAdapter = onCreateAdapter()
 
-		viewModel.content.observe(viewLifecycleOwner) {
+		// Fragments without a pager adapter (e.g. the novel reader, which renders one
+		// continuous WebView document) do not consume page-based content at all.
+		if (readerAdapter != null) viewModel.content.observe(viewLifecycleOwner) {
 			// Determine which state to use for restoring position:
 			// - content.state: explicitly set state (e.g., after mode switch or chapter change)
 			// - getCurrentState(): current reading position saved in SavedStateHandle
@@ -92,7 +94,7 @@ abstract class BaseReaderFragment<B : ViewBinding> : BaseFragment<B>(), ZoomCont
 		return null
 	}
 
-	protected abstract fun onCreateAdapter(): BaseReaderAdapter<*>
+	protected open fun onCreateAdapter(): BaseReaderAdapter<*>? = null
 
-	protected abstract suspend fun onPagesChanged(pages: List<ReaderPage>, pendingState: ReaderState?)
+	protected open suspend fun onPagesChanged(pages: List<ReaderPage>, pendingState: ReaderState?) = Unit
 }
