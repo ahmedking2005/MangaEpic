@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.reader.ui
 
 import android.net.Uri
+import android.util.Log
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
@@ -76,8 +77,10 @@ import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import org.koitharu.kotatsu.parsers.util.sizeOrZero
 import org.koitharu.kotatsu.reader.domain.ChaptersLoader
 import org.koitharu.kotatsu.reader.domain.DetectReaderModeUseCase
+import org.koitharu.kotatsu.reader.domain.NovelChaptersLoader
 import org.koitharu.kotatsu.reader.domain.PageLoader
 import org.koitharu.kotatsu.reader.ui.config.ReaderSettings
+import org.koitharu.kotatsu.reader.ui.novel.NovelContent
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
 import org.koitharu.kotatsu.scrobbling.discord.ui.DiscordRpc
@@ -102,6 +105,7 @@ class ReaderViewModel @Inject constructor(
     settings: AppSettings,
     private val pageLoader: PageLoader,
     private val chaptersLoader: ChaptersLoader,
+    private val novelChaptersLoader: NovelChaptersLoader,
     private val appShortcutManager: AppShortcutManager,
     private val detailsLoadUseCase: DetailsLoadUseCase,
     private val historyUpdateUseCase: HistoryUpdateUseCase,
@@ -125,6 +129,7 @@ class ReaderViewModel @Inject constructor(
     private val intent = MangaIntent(savedStateHandle)
 
     private var loadingJob: Job? = null
+    private var novelAppendJob: Job? = null
     private var pageSaveJob: Job? = null
     private var bookmarkJob: Job? = null
     private var stateChangeJob: Job? = null
@@ -144,6 +149,12 @@ class ReaderViewModel @Inject constructor(
 
     val content = MutableStateFlow(ReaderContent(emptyList(), null))
     private val contentLock = Mutex()
+
+    val novelContent = MutableStateFlow<NovelContent?>(null)
+    val novelContents = MutableStateFlow<List<NovelContent>>(emptyList())
+
+    val isNovelMode: Boolean
+        get() = readerMode.value == ReaderMode.NOVEL
 
     val pageAnimation = settings.observeAsStateFlow(
         scope = viewModelScope + Dispatchers.Default,
@@ -194,7 +205,9 @@ class ReaderViewModel @Inject constructor(
 
     val isZoomControlsEnabled = getObserveIsZoomControlEnabled().flatMapLatest { zoom ->
         if (zoom) {
-            combine(readerMode, isWebtoonZooEnabled) { mode, ze -> ze || mode != ReaderMode.WEBTOON }
+            combine(readerMode, isWebtoonZooEnabled) { mode, ze ->
+                mode != ReaderMode.NOVEL && (ze || mode != ReaderMode.WEBTOON)
+            }
         } else {
             flowOf(false)
         }
@@ -357,11 +370,23 @@ class ReaderViewModel @Inject constructor(
         val prevJob = loadingJob
         loadingJob = launchLoadingJob(Dispatchers.Default) {
             prevJob?.cancelAndJoin()
-            content.value = ReaderContent(emptyList(), null)
-            chaptersLoader.loadSingleChapter(id)
+            novelAppendJob?.cancelAndJoin()
             val newState = ReaderState(id, page, 0)
-            publishPages(newState)
+            if (isNovelMode) {
+                novelContent.value = null
+                novelContents.value = emptyList()
+                val loadedContent = novelChaptersLoader.loadChapter(id)
+                novelContent.value = loadedContent
+                novelContents.value = listOf(loadedContent)
+            } else {
+                content.value = ReaderContent(emptyList(), null)
+                chaptersLoader.loadSingleChapter(id)
+                publishPages(newState)
+            }
             saveCurrentState(newState)
+            if (isNovelMode) {
+                notifyStateChanged()
+            }
         }
     }
 
@@ -369,6 +394,7 @@ class ReaderViewModel @Inject constructor(
         val prevJob = loadingJob
         loadingJob = launchLoadingJob(Dispatchers.Default) {
             prevJob?.cancelAndJoin()
+            novelAppendJob?.cancelAndJoin()
             val prevState = readingState.requireValue()
             val newChapterId = if (delta != 0) {
                 val allChapters = mangaDetails.requireValue().allChapters
@@ -381,20 +407,114 @@ class ReaderViewModel @Inject constructor(
             } else {
                 prevState.chapterId
             }
-            content.value = ReaderContent(emptyList(), null)
-            chaptersLoader.loadSingleChapter(newChapterId)
             val newState = ReaderState(
                 chapterId = newChapterId,
                 page = if (delta == 0) prevState.page else 0,
                 scroll = if (delta == 0) prevState.scroll else 0,
             )
-            publishPages(newState)
+            if (isNovelMode) {
+                novelContent.value = null
+                novelContents.value = emptyList()
+                val loadedContent = novelChaptersLoader.loadChapter(newChapterId)
+                novelContent.value = loadedContent
+                novelContents.value = listOf(loadedContent)
+            } else {
+                content.value = ReaderContent(emptyList(), null)
+                chaptersLoader.loadSingleChapter(newChapterId)
+                publishPages(newState)
+            }
             saveCurrentState(newState)
+            if (isNovelMode) {
+                notifyStateChanged()
+            }
+        }
+    }
+
+    /**
+     * Loads the chapter after [chapterId] without replacing the chapters that
+     * are already visible in the novel reader.
+     */
+    @MainThread
+    fun appendNextNovelChapter(chapterId: Long) {
+        Log.i(
+            NOVEL_CONTINUOUS_LOG_TAG,
+            "Append requested after=$chapterId, novelMode=$isNovelMode, " +
+                "jobActive=${novelAppendJob?.isActive}, loaded=${novelContents.value.map { it.chapterId }}",
+        )
+        if (!isNovelMode || novelAppendJob?.isActive == true) {
+            Log.i(NOVEL_CONTINUOUS_LOG_TAG, "Append ignored: mode or active job")
+            return
+        }
+        if (novelContents.value.lastOrNull()?.chapterId != chapterId) {
+            Log.i(NOVEL_CONTINUOUS_LOG_TAG, "Append ignored: requested chapter is not the rendered tail")
+            return
+        }
+        novelAppendJob = launchJob(
+            Dispatchers.Default + EventExceptionHandler(onLoadingError),
+        ) {
+            val details = mangaDetails.requireValue()
+            val chapters = details.allChapters
+            val currentIndex = chapters.indexOfFirst { it.id == chapterId }
+            Log.i(
+                NOVEL_CONTINUOUS_LOG_TAG,
+                "Append lookup: index=$currentIndex, total=${chapters.size}",
+            )
+            if (currentIndex < 0) {
+                return@launchJob
+            }
+            val nextChapter = chapters.getOrNull(currentIndex + 1) ?: return@launchJob
+            if (novelContents.value.any { it.chapterId == nextChapter.id }) {
+                return@launchJob
+            }
+            Log.i(NOVEL_CONTINUOUS_LOG_TAG, "Loading next chapter=${nextChapter.id}")
+            val nextContent = novelChaptersLoader.loadChapter(nextChapter.id)
+            novelContents.update { current ->
+                if (
+                    current.lastOrNull()?.chapterId == chapterId &&
+                    current.none { it.chapterId == nextContent.chapterId }
+                ) {
+                    current + nextContent
+                } else {
+                    current
+                }
+            }
+            Log.i(
+                NOVEL_CONTINUOUS_LOG_TAG,
+                "Append complete, loaded=${novelContents.value.map { it.chapterId }}",
+            )
+        }
+    }
+
+    /**
+     * Moves reading progress to the chapter currently crossing the top of the
+     * continuous novel document. Content remains mounted, so scrolling stays
+     * uninterrupted.
+     */
+    @MainThread
+    fun onNovelChapterVisible(state: ReaderState) {
+        if (!isNovelMode || readingState.value?.chapterId == state.chapterId) {
+            return
+        }
+        novelContent.value = novelContents.value.firstOrNull { it.chapterId == state.chapterId }
+        saveCurrentState(state)
+        launchJob(Dispatchers.Default) {
+            notifyStateChanged()
         }
     }
 
     @MainThread
+    fun resetNovelSequenceToCurrentChapter() {
+        val chapterId = readingState.value?.chapterId ?: return
+        val current = novelContents.value.firstOrNull { it.chapterId == chapterId }
+            ?: novelContent.value
+            ?: return
+        novelContent.value = current
+        novelContents.value = listOf(current)
+    }
+
+    @MainThread
     fun onCurrentPageChanged(lowerPos: Int, upperPos: Int) {
+        if (isNovelMode) return
         val prevJob = stateChangeJob
         val pages = content.value.pages // capture immediately
         stateChangeJob = launchJob(Dispatchers.Default) {
@@ -441,17 +561,30 @@ class ReaderViewModel @Inject constructor(
                 bookmarksRepository.removeBookmark(manga.id, state.chapterId, state.page)
                 onShowToast.call(R.string.bookmark_removed)
             } else {
-                val page = checkNotNull(getCurrentPage()) { "Page not found" }
-                val bookmark = Bookmark(
-                    manga = requireManga(),
-                    pageId = page.id,
-                    chapterId = state.chapterId,
-                    page = state.page,
-                    scroll = state.scroll,
-                    imageUrl = page.preview.ifNullOrEmpty { page.url },
-                    createdAt = Instant.now(),
-                    percent = computePercent(state.chapterId, state.page),
-                )
+                val bookmark = if (isNovelMode) {
+                    Bookmark(
+                        manga = requireManga(),
+                        pageId = state.chapterId,
+                        chapterId = state.chapterId,
+                        page = 0,
+                        scroll = state.scroll,
+                        imageUrl = "",
+                        createdAt = Instant.now(),
+                        percent = computePercent(state.chapterId, 0),
+                    )
+                } else {
+                    val page = checkNotNull(getCurrentPage()) { "Page not found" }
+                    Bookmark(
+                        manga = requireManga(),
+                        pageId = page.id,
+                        chapterId = state.chapterId,
+                        page = state.page,
+                        scroll = state.scroll,
+                        imageUrl = page.preview.ifNullOrEmpty { page.url },
+                        createdAt = Instant.now(),
+                        percent = computePercent(state.chapterId, state.page),
+                    )
+                }
                 bookmarksRepository.addBookmark(bookmark)
                 onShowToast.call(R.string.bookmark_added)
             }
@@ -483,6 +616,7 @@ class ReaderViewModel @Inject constructor(
                             mangaDetails.value = details
                         }
                         chaptersLoader.init(details)
+                        novelChaptersLoader.init(details)
                         val manga = details.toManga()
                         // obtain state
                         if (readingState.value == null) {
@@ -495,10 +629,17 @@ class ReaderViewModel @Inject constructor(
                                 detectReaderModeUseCase(manga, newState)
                             }.getOrDefault(settings.defaultReaderMode)
                             val branch = chaptersLoader.peekChapter(newState.chapterId)?.branch
+                                ?: novelChaptersLoader.peekChapter(newState.chapterId)?.branch
                             selectedBranch.value = branch
                             readerMode.value = mode
                             try {
-                                chaptersLoader.loadSingleChapter(newState.chapterId)
+                                if (mode == ReaderMode.NOVEL) {
+                                    val loadedContent = novelChaptersLoader.loadChapter(newState.chapterId)
+                                    novelContent.value = loadedContent
+                                    novelContents.value = listOf(loadedContent)
+                                } else {
+                                    chaptersLoader.loadSingleChapter(newState.chapterId)
+                                }
                             } catch (e: Exception) {
                                 readingState.value = null // try next time
                                 exception = e.mergeWith(exception)
@@ -507,7 +648,9 @@ class ReaderViewModel @Inject constructor(
                         }
                         mangaDetails.value = details.filterChapters(selectedBranch.value)
                         notifyStateChanged()
-                        publishPages(readingState.value)
+                        if (!isNovelMode) {
+                            publishPages(readingState.value)
+                        }
 
                         // save state, once the pages are on their way: this rewrites the whole chapter list
                         if (!isIncognitoMode.firstNotNull()) {
@@ -589,7 +732,9 @@ class ReaderViewModel @Inject constructor(
     @WorkerThread
     private fun notifyStateChanged() {
         val state = getCurrentState() ?: return
-        val chapter = chaptersLoader.peekChapter(state.chapterId) ?: return
+        val chapter = chaptersLoader.peekChapter(state.chapterId)
+            ?: novelChaptersLoader.peekChapter(state.chapterId)
+            ?: return
         val m = mangaDetails.value ?: return
         val chapterIndex = m.chapters[chapter.branch]?.indexOfFirst { it.id == chapter.id } ?: -1
         val newState = ReaderUiState(
@@ -597,7 +742,7 @@ class ReaderViewModel @Inject constructor(
             chapter = chapter,
             chapterIndex = chapterIndex,
             chaptersTotal = m.chapters[chapter.branch].sizeOrZero(),
-            totalPages = chaptersLoader.getPagesCount(chapter.id),
+            totalPages = if (isNovelMode) 1 else chaptersLoader.getPagesCount(chapter.id),
             currentPage = state.page,
             percent = computePercent(state.chapterId, state.page),
             incognito = isIncognitoMode.value == true,
@@ -611,9 +756,17 @@ class ReaderViewModel @Inject constructor(
 
     private fun computePercent(chapterId: Long, pageIndex: Int): Float {
         val branch = chaptersLoader.peekChapter(chapterId)?.branch
+            ?: novelChaptersLoader.peekChapter(chapterId)?.branch
         val chapters = mangaDetails.value?.chapters?.get(branch) ?: return PROGRESS_NONE
         val chaptersCount = chapters.size
         val chapterIndex = chapters.indexOfFirst { x -> x.id == chapterId }
+        if (isNovelMode) {
+            return if (chaptersCount == 0 || chapterIndex < 0) {
+                PROGRESS_NONE
+            } else {
+                (chapterIndex + 1f) / chaptersCount
+            }
+        }
         val pagesCount = chaptersLoader.getPagesCount(chapterId)
         if (chaptersCount == 0 || pagesCount == 0) {
             return PROGRESS_NONE
@@ -756,5 +909,9 @@ class ReaderViewModel @Inject constructor(
     } else {
         other.addSuppressed(this)
         other
+    }
+
+    private companion object {
+        const val NOVEL_CONTINUOUS_LOG_TAG = "NovelContinuous"
     }
 }
