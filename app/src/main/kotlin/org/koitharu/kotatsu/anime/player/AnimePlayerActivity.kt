@@ -1,10 +1,8 @@
 package org.koitharu.kotatsu.anime.player
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.PictureInPictureParams
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -53,7 +51,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.ads.AdMobManager
 import org.koitharu.kotatsu.anime.data.AnimePlaybackRepository
 import org.koitharu.kotatsu.anime.data.AnimeStreamSelector
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableChapter
@@ -548,15 +545,13 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 
 	private fun selectEpisode(selected: MangaChapter) {
 		if (selected.id == episode.id) return
-		AdMobManager.offerAnimeInterstitial(this) {
-			if (isFinishing || isDestroyed || selected.id == episode.id) return@offerAnimeInterstitial
-			saveProgress()
-			episode = selected
-			resumePositionMs = 0L
-			hasPlaybackStarted = false
-			updateTitle()
-			loadEpisode(resolveDetails = false)
-		}
+		if (isFinishing || isDestroyed) return
+		saveProgress()
+		episode = selected
+		resumePositionMs = 0L
+		hasPlaybackStarted = false
+		updateTitle()
+		loadEpisode(resolveDetails = false)
 	}
 
 	private fun moveEpisode(delta: Int, showBoundaryMessage: Boolean = true): Boolean {
@@ -1138,24 +1133,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 				.putExtra(EXTRA_EPISODE, ParcelableChapter(episode))
 				.putParcelableArrayListExtra(EXTRA_EPISODES, episodes)
 				.putExtra(EXTRA_POSITION, positionMs)
-			val launchPlayer = { context.startActivity(playerIntent) }
-			val activity = findActivity(context)
-			if (activity == null) {
-				launchPlayer()
-			} else {
-				AdMobManager.offerAnimeInterstitial(activity, launchPlayer)
-			}
-		}
-
-		private fun findActivity(context: Context): Activity? {
-			var current = context
-			while (current is ContextWrapper) {
-				if (current is Activity) return current
-				val base = current.baseContext
-				if (base === current) break
-				current = base
-			}
-			return current as? Activity
+			context.startActivity(playerIntent)
 		}
 	}
 }
