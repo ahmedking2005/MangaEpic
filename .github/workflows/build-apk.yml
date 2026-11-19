@@ -45,13 +45,15 @@ jobs:
           grep -E "versionCode|versionName" app/build.gradle
 
       - name: Build release APK
-          run: ./gradlew assembleRelease --stacktrace 2>&1 | tee build-full.log; exit ${PIPESTATUS[0]}
+        run: ./gradlew assembleRelease --stacktrace 2>&1 | tee build-full.log; exit ${PIPESTATUS[0]}
+
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
           path: build-full.log
+
       - name: Sign APK
         run: |
           UNSIGNED=$(ls app/build/outputs/apk/release/*-unsigned.apk | head -n 1)
