@@ -72,23 +72,5 @@ public interface MangaParser : Interceptor {
 
 	public suspend fun getRelatedManga(seed: Manga): List<Manga>
 
-	/**
-	 * Fetch the content of a novel chapter as HTML.
-	 * Only novel parsers should override this method.
-	 * @return [NovelChapterContent] with HTML and embedded images, or null if not a novel source.
-	 */
-	public suspend fun getChapterContent(chapter: MangaChapter): NovelChapterContent? {
-		return null
-	}
-
-	/**
-	 * Resolve an anime episode to directly playable HLS/MP4 streams.
-	 * Only parsers whose [ParserMangaSource.contentType] is [ContentType.ANIME]
-	 * should override this method.
-	 */
-	public suspend fun getVideoStreams(chapter: MangaChapter): List<AnimeStream> {
-		return emptyList()
-	}
-
 	public fun getRequestHeaders(): Headers
 }
