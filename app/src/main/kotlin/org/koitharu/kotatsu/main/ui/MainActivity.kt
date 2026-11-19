@@ -126,6 +126,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 	@Inject
 	lateinit var librarySync: LibrarySync
 
+	@Inject
+	lateinit var syncScheduler: org.koitharu.kotatsu.cloud.LibrarySyncWorker.Scheduler
+
 	private val viewModel by viewModels<MainViewModel>()
 	private val searchSuggestionViewModel by viewModels<SearchSuggestionViewModel>()
 
@@ -168,6 +171,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		if (savedInstanceState == null) {
 			lifecycleScope.launch { runCatching { librarySync.syncAll() } }
 		}
+		// Manga Epic: automatic hourly library sync for signed-in users (not manual only).
+		syncScheduler.schedule()
 		// What the floating bar covers reaches the lists as part of the bottom inset. See updateContainerBottomMargin
 		ViewCompat.setOnApplyWindowInsetsListener(viewBinding.container) { _, insets -> insets.withFloatingNavCover() }
 
