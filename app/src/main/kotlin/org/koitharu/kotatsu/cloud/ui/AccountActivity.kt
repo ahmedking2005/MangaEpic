@@ -190,7 +190,10 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 			add(
 				buildJsonObject {
 					put("user_id", userId)
-					put("display_name", settings.profileName)
+					put("display_name", supabase.userName.ifBlank { settings.profileName })
+					if (supabase.userAvatarUrl.isNotBlank()) {
+						put("avatar_url", supabase.userAvatarUrl)
+					}
 				},
 			)
 		}
