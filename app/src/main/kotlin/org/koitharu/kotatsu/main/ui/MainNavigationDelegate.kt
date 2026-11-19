@@ -108,16 +108,7 @@ class MainNavigationDelegate(
 	}
 
 	override fun handleOnBackPressed() {
-		val targetId = firstItem()?.itemId ?: return
-		// Manga Epic: the current page may not be a bar item at all (the Profile page is
-		// opened from the top-bar icon). If the bar selection already IS the first item,
-		// assigning it again fires no selection event and the back press would be
-		// swallowed, trapping the user on the page — navigate directly in that case.
-		if (navBar.selectedItemId == targetId) {
-			onNavigationItemSelected(targetId)
-		} else {
-			navBar.selectedItemId = targetId
-		}
+		navBar.selectedItemId = firstItem()?.itemId ?: return
 	}
 
 	fun onCreate(lifecycleOwner: LifecycleOwner, savedInstanceState: Bundle?) {
