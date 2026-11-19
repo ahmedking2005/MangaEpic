@@ -15,12 +15,10 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import org.koitharu.kotatsu.BuildConfig
-import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.cloud.RemoteConfigManager
 
 /**
@@ -36,9 +34,6 @@ object AdMobManager {
 
 	private const val TAG = "AdMobManager"
 	private const val AD_PREFERENCES = "admob_preferences"
-	private const val KEY_ANIME_OFFER_WAS_SHOWN = "anime_offer_was_shown"
-	private const val KEY_EPISODES_SINCE_ANIME_OFFER = "episodes_since_anime_offer"
-	private const val EPISODES_BETWEEN_ANIME_OFFERS = 2
 	private const val KEY_CHAPTER_CROSSINGS_SINCE_BREAK = "chapter_crossings_since_break"
 	private const val KEY_LAST_CHAPTER_BREAK_AT = "last_chapter_break_at"
 	private const val CHAPTER_CROSSINGS_BETWEEN_BREAKS = 3
@@ -156,63 +151,6 @@ object AdMobManager {
 	}
 
 	/**
-	 * Offers the already-preloaded ad on the first eligible episode, then once for
-	 * every two episodes started after the previous offer. Declining, cancellation,
-	 * a failed display, or an unavailable ad all continue playback without blocking
-	 * the user.
-	 */
-	@MainThread
-	fun offerAnimeInterstitial(activity: Activity, onContinue: () -> Unit) {
-		if (!isEnabled() || activity.isFinishing || activity.isDestroyed) {
-			onContinue()
-			return
-		}
-		val preferences = activity.getSharedPreferences(AD_PREFERENCES, Context.MODE_PRIVATE)
-		val wasShownBefore = preferences.getBoolean(KEY_ANIME_OFFER_WAS_SHOWN, false)
-		if (wasShownBefore) {
-			val episodeCount = (
-				preferences.getInt(KEY_EPISODES_SINCE_ANIME_OFFER, 0) + 1
-				).coerceAtMost(EPISODES_BETWEEN_ANIME_OFFERS)
-			preferences.edit()
-				.putInt(KEY_EPISODES_SINCE_ANIME_OFFER, episodeCount)
-				.apply()
-			if (episodeCount < EPISODES_BETWEEN_ANIME_OFFERS) {
-				onContinue()
-				return
-			}
-		}
-		if (animeInterstitial == null) {
-			preloadAnimeInterstitial(activity.applicationContext)
-			onContinue()
-			return
-		}
-
-		val dialog = MaterialAlertDialogBuilder(activity)
-			.setTitle(R.string.optional_anime_ad_title)
-			.setMessage(R.string.optional_anime_ad_message)
-			.setPositiveButton(R.string.watch_ad) { _, _ ->
-				showAnimeInterstitial(activity, onContinue)
-			}
-			.setNegativeButton(R.string.play_now) { _, _ ->
-				onContinue()
-			}
-			.setOnCancelListener {
-				onContinue()
-			}
-			.create()
-		dialog.setOnShowListener {
-			preferences.edit()
-				.putBoolean(KEY_ANIME_OFFER_WAS_SHOWN, true)
-				.putInt(KEY_EPISODES_SINCE_ANIME_OFFER, 0)
-				.apply()
-		}
-		runCatching(dialog::show).onFailure {
-			Log.w(TAG, "Anime interstitial offer could not be shown", it)
-			onContinue()
-		}
-	}
-
-	/**
 	 * Manga Epic: shows the preloaded interstitial when the reader crosses from one
 	 * chapter into the next. Frequency-capped (every $CHAPTER_CROSSINGS_BETWEEN_BREAKS
 	 * crossings, at most once per few minutes) and never blocking: if no ad is ready
@@ -306,39 +244,4 @@ object AdMobManager {
 		)
 	}
 
-	@MainThread
-	private fun showAnimeInterstitial(activity: Activity, onContinue: () -> Unit) {
-		val ad = animeInterstitial
-		if (ad == null) {
-			preloadAnimeInterstitial(activity.applicationContext)
-			onContinue()
-			return
-		}
-		animeInterstitial = null
-		var hasContinued = false
-		fun continueOnce() {
-			if (hasContinued) return
-			hasContinued = true
-			onContinue()
-		}
-		ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-			override fun onAdDismissedFullScreenContent() {
-				continueOnce()
-				preloadAnimeInterstitial(activity.applicationContext)
-			}
-
-			override fun onAdFailedToShowFullScreenContent(error: AdError) {
-				Log.w(TAG, "Anime interstitial failed to show: ${error.message}")
-				continueOnce()
-				preloadAnimeInterstitial(activity.applicationContext)
-			}
-		}
-		runCatching {
-			ad.show(activity)
-		}.onFailure {
-			Log.w(TAG, "Anime interstitial could not be shown", it)
-			continueOnce()
-			preloadAnimeInterstitial(activity.applicationContext)
-		}
-	}
 }
