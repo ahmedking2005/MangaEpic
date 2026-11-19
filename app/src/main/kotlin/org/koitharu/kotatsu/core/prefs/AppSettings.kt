@@ -397,6 +397,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_SUPABASE_USER_EMAIL, "").orEmpty()
 		set(value) = prefs.edit { putString(KEY_SUPABASE_USER_EMAIL, value) }
 
+	/** Manga Epic: display name from the signed-in account (e.g. the Google profile name). */
+	var supabaseUserName: String
+		get() = prefs.getString(KEY_SUPABASE_USER_NAME, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_SUPABASE_USER_NAME, value) }
+
+	/** Manga Epic: avatar URL from the signed-in account (e.g. the Google profile picture). */
+	var supabaseUserAvatarUrl: String
+		get() = prefs.getString(KEY_SUPABASE_USER_AVATAR_URL, "").orEmpty()
+		set(value) = prefs.edit { putString(KEY_SUPABASE_USER_AVATAR_URL, value) }
+
 	/** Manga Epic: epoch millis when the Supabase access token expires. */
 	var supabaseTokenExpiresAt: Long
 		get() = prefs.getLong(KEY_SUPABASE_TOKEN_EXPIRES_AT, 0L)
@@ -1084,6 +1094,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SUPABASE_REFRESH_TOKEN = "supabase_refresh_token"
 		const val KEY_SUPABASE_USER_ID = "supabase_user_id"
 		const val KEY_SUPABASE_USER_EMAIL = "supabase_user_email"
+		const val KEY_SUPABASE_USER_NAME = "supabase_user_name"
+		const val KEY_SUPABASE_USER_AVATAR_URL = "supabase_user_avatar_url"
 		const val KEY_SUPABASE_TOKEN_EXPIRES_AT = "supabase_token_expires_at"
 		const val KEY_LAST_SYNC_AT = "last_sync_at"
 		const val KEY_SUPABASE_PKCE_VERIFIER = "supabase_pkce_verifier"
