@@ -753,6 +753,18 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val backupTelegramChatId: String?
 		get() = prefs.getString(KEY_BACKUP_TG_CHAT, null)?.nullIfEmpty()
 
+	var isDriveBackupEnabled: Boolean
+		get() = prefs.getBoolean(KEY_BACKUP_DRIVE_ENABLED, false)
+		set(value) = prefs.edit { putBoolean(KEY_BACKUP_DRIVE_ENABLED, value) }
+
+	var driveAccountEmail: String?
+		get() = prefs.getString(KEY_BACKUP_DRIVE_EMAIL, null)?.nullIfEmpty()
+		set(value) = prefs.edit { putString(KEY_BACKUP_DRIVE_EMAIL, value?.nullIfEmpty()) }
+
+	var lastDriveBackupAt: Long
+		get() = prefs.getLong(KEY_BACKUP_DRIVE_LAST_AT, 0L)
+		set(value) = prefs.edit { putLong(KEY_BACKUP_DRIVE_LAST_AT, value) }
+
 	val isReadingTimeEstimationEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READING_TIME, true)
 
@@ -1125,6 +1137,15 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_BACKUP_TG = "backup_periodic_tg"
 		const val KEY_BACKUP_TG_OPEN = "backup_periodic_tg_open"
 		const val KEY_BACKUP_TG_TEST = "backup_periodic_tg_test"
+		const val KEY_BACKUP_DRIVE = "backup_drive"
+		const val KEY_BACKUP_DRIVE_ENABLED = "backup_drive_enabled"
+		const val KEY_BACKUP_DRIVE_EMAIL = "backup_drive_email"
+		const val KEY_BACKUP_DRIVE_LAST_AT = "backup_drive_last_at"
+		const val KEY_BACKUP_DRIVE_ACCOUNT = "backup_drive_account"
+		const val KEY_BACKUP_DRIVE_NOW = "backup_drive_now"
+		const val KEY_BACKUP_DRIVE_RESTORE = "backup_drive_restore"
+		const val KEY_BACKUP_DRIVE_DISCONNECT = "backup_drive_disconnect"
+		const val KEY_BACKUP_DRIVE_LAST = "backup_drive_last"
 		const val KEY_CLEAR_MANGA_DATA = "manga_data_clear"
 		const val KEY_STORAGE_USAGE = "storage_usage"
 		const val KEY_WEBVIEW_CLEAR = "webview_clear"
