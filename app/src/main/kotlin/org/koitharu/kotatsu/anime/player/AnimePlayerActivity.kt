@@ -112,6 +112,10 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 	private var streamRefreshAttempts = 0
 	private var isRefreshingStreams = false
 	private var hasPlaybackStarted = false
+
+	/** X1b: true while a stream attempt has not reached STATE_READY yet (watchdog armed). */
+	private var isAwaitingFirstReady = false
+	private val streamWatchdogRunnable = Runnable { onStreamAttemptTimeout() }
 	private var playbackSpeed = 1f
 	private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
 	private var autoPlayNextEpisode = true
@@ -402,6 +406,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		selectedStreamIndex = 0
 		streamRefreshAttempts = 0
 		isRefreshingStreams = false
+		viewBinding.textLoadingStatus.setText(R.string.anime_loading_servers)
 		showLoading(true)
 		loadJob = lifecycleScope.launch {
 			runCatching {
@@ -429,16 +434,19 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 				streams = AnimeStreamSelector.orderForPlayback(result, selectedQualityHeight)
 				showLoading(false)
 				if (result.isEmpty()) {
-					showError()
+					// X1b: an empty list usually means the source's servers are
+					// momentarily dead — go through the bounded refresh flow
+					// before showing the hard error.
+					refreshStreamsAfterFailure(resumePositionMs)
 				} else {
 					playStream(0, resumePositionMs)
 				}
 				updateQuickControls()
 				invalidateOptionsMenu()
 			}.onFailure {
-				showLoading(false)
-				showError()
-				Snackbar.make(viewBinding.root, R.string.anime_stream_error, Snackbar.LENGTH_LONG).show()
+				// X1b: a failed fetch (e.g. the episode page request died) gets
+				// the same bounded retries as failed playback before the hard error.
+				refreshStreamsAfterFailure(resumePositionMs)
 			}
 		}
 	}
@@ -455,6 +463,9 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		viewBinding.playerView.isVisible = true
 		viewBinding.playerView.resizeMode = resizeMode
 
+		isAwaitingFirstReady = true
+		viewBinding.root.removeCallbacks(streamWatchdogRunnable)
+		viewBinding.root.postDelayed(streamWatchdogRunnable, STREAM_ATTEMPT_TIMEOUT_MS)
 		val httpFactory = DefaultHttpDataSource.Factory()
 			.setAllowCrossProtocolRedirects(true)
 			.setDefaultRequestProperties(stream.headers)
@@ -488,6 +499,11 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 					}
 
 						override fun onPlaybackStateChanged(playbackState: Int) {
+						if (playbackState == Player.STATE_READY) {
+							isAwaitingFirstReady = false
+							viewBinding.root.removeCallbacks(streamWatchdogRunnable)
+							showLoading(false)
+						}
 						if (playbackState == Player.STATE_ENDED) hidePauseBanner()
 						if (playbackState == Player.STATE_ENDED && autoPlayNextEpisode) {
 							moveEpisode(1, showBoundaryMessage = false)
@@ -520,13 +536,32 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 				"server=$selectedStreamIndex code=${error.errorCodeName}",
 			error,
 		)
+		advanceAfterFailure(positionMs)
+	}
+
+	/** X1b: a stream attempt produced no playable media within the bound — treat it like a playback error. */
+	private fun onStreamAttemptTimeout() {
+		if (!isAwaitingFirstReady || player == null) return
+		Log.w(
+			TAG,
+			"Stream attempt timed out for ${manga.source.name}/${episode.id} server=$selectedStreamIndex",
+		)
+		val position = player?.currentPosition?.coerceAtLeast(resumePositionMs) ?: resumePositionMs
+		advanceAfterFailure(position)
+	}
+
+	/**
+	 * X1b: the shared fallback chain — try the next server behind a visible
+	 * "trying another server" state; when the list is exhausted, refresh the
+	 * stream list (bounded) before any hard error is shown.
+	 */
+	private fun advanceAfterFailure(positionMs: Long) {
+		isAwaitingFirstReady = false
+		viewBinding.root.removeCallbacks(streamWatchdogRunnable)
 		val next = selectedStreamIndex + 1
 		if (next in streams.indices) {
-			Snackbar.make(
-				viewBinding.root,
-				R.string.anime_trying_another_server,
-				Snackbar.LENGTH_SHORT,
-			).show()
+			viewBinding.textLoadingStatus.setText(R.string.anime_trying_another_server)
+			showLoading(true)
 			playStream(next, positionMs)
 			return
 		}
@@ -541,19 +576,19 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 	 */
 	private fun refreshStreamsAfterFailure(positionMs: Long) {
 		val repository = playbackRepository
-		if (repository == null || isRefreshingStreams) return
+		if (repository == null) {
+			showError()
+			return
+		}
+		if (isRefreshingStreams) return
 		if (streamRefreshAttempts >= MAX_STREAM_REFRESH_ATTEMPTS) {
 			showError()
 			return
 		}
 		isRefreshingStreams = true
 		releasePlayer(saveProgress = false)
+		viewBinding.textLoadingStatus.setText(R.string.anime_refreshing_servers)
 		showLoading(true)
-		Snackbar.make(
-			viewBinding.root,
-			R.string.anime_refreshing_servers,
-			Snackbar.LENGTH_SHORT,
-		).show()
 		loadJob?.cancel()
 		loadJob = lifecycleScope.launch {
 			var refreshed = emptyList<AnimeStream>()
@@ -1001,6 +1036,8 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 
 	private fun releasePlayer(saveProgress: Boolean) {
 		if (saveProgress) saveProgress()
+		isAwaitingFirstReady = false
+		if (hasViewBinding()) viewBinding.root.removeCallbacks(streamWatchdogRunnable)
 		player?.let {
 			resumePositionMs = it.currentPosition.coerceAtLeast(0L)
 			it.release()
@@ -1200,6 +1237,7 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		private const val GESTURE_FEEDBACK_TIMEOUT_MS = 850L
 		private const val PAUSE_BANNER_RESUME_HIDE_DELAY_MS = 3_000L
 		private const val MAX_STREAM_REFRESH_ATTEMPTS = 3
+		private const val STREAM_ATTEMPT_TIMEOUT_MS = 20_000L
 		private const val STREAM_REFRESH_RETRY_DELAY_MS = 650L
 		private const val GESTURE_SENSITIVITY = 1.35f
 		private const val GESTURE_ACTIVE_HEIGHT_RATIO = 0.8f
