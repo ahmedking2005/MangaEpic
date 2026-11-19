@@ -59,6 +59,20 @@ class SupabaseClient @Inject constructor(
 	val userEmail: String
 		get() = settings.supabaseUserEmail
 
+	/** Manga Epic: the account's display name from the provider (e.g. Google), may be blank. */
+	val userName: String
+		get() = settings.supabaseUserName
+
+	/** Manga Epic: the account's profile picture URL from the provider, may be blank. */
+	val userAvatarUrl: String
+		get() = settings.supabaseUserAvatarUrl
+
+	/** Manga Epic: @-handle derived from the account e-mail, shown on the Profile page. */
+	val userHandle: String
+		get() = settings.supabaseUserEmail.substringBefore('@')
+			.lowercase()
+			.filter { it.isLetterOrDigit() || it == '.' || it == '_' }
+
 	// region Auth
 
 	/**
@@ -150,16 +164,14 @@ class SupabaseClient @Inject constructor(
 		settings.supabaseRefreshToken = refreshToken
 		settings.supabaseTokenExpiresAt = System.currentTimeMillis() + expiresInSeconds * 1000L
 		return request("/auth/v1/user", "GET", null, useSessionToken = true).mapCatching { body ->
-			val obj = json.decodeFromString(JsonElement.serializer(), body)
-				as? kotlinx.serialization.json.JsonObject
-				?: throw IOException("Unexpected user response")
-			val id = (obj["id"] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty()
-			if (id.isEmpty()) {
+			val user = json.decodeFromString(AuthUser.serializer(), body)
+			if (user.id.isEmpty()) {
 				throw IOException("Missing user id")
 			}
-			settings.supabaseUserId = id
-			settings.supabaseUserEmail =
-				(obj["email"] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty()
+			settings.supabaseUserId = user.id
+			settings.supabaseUserEmail = user.email.orEmpty()
+			settings.supabaseUserName = user.displayName
+			settings.supabaseUserAvatarUrl = user.avatarUrl
 			true
 		}.onFailure { clearSession() }
 	}
@@ -184,6 +196,8 @@ class SupabaseClient @Inject constructor(
 		settings.supabaseRefreshToken = session.refreshToken
 		settings.supabaseUserId = session.user.id
 		settings.supabaseUserEmail = session.user.email ?: fallbackEmail
+		settings.supabaseUserName = session.user.displayName
+		settings.supabaseUserAvatarUrl = session.user.avatarUrl
 		settings.supabaseTokenExpiresAt = System.currentTimeMillis() + session.expiresIn * 1000L
 	}
 
@@ -192,6 +206,8 @@ class SupabaseClient @Inject constructor(
 		settings.supabaseRefreshToken = ""
 		settings.supabaseUserId = ""
 		settings.supabaseUserEmail = ""
+		settings.supabaseUserName = ""
+		settings.supabaseUserAvatarUrl = ""
 		settings.supabaseTokenExpiresAt = 0L
 	}
 
@@ -295,6 +311,24 @@ class SupabaseClient @Inject constructor(
 	private data class AuthUser(
 		val id: String,
 		val email: String? = null,
+		@kotlinx.serialization.SerialName("user_metadata") val userMetadata: AuthUserMetadata? = null,
+	) {
+
+		/** Manga Epic: the provider's display name (Google full name) when available. */
+		val displayName: String
+			get() = userMetadata?.fullName ?: userMetadata?.name ?: ""
+
+		/** Manga Epic: the provider's profile picture URL (Google avatar) when available. */
+		val avatarUrl: String
+			get() = userMetadata?.avatarUrl ?: userMetadata?.picture ?: ""
+	}
+
+	@Serializable
+	private data class AuthUserMetadata(
+		@kotlinx.serialization.SerialName("full_name") val fullName: String? = null,
+		val name: String? = null,
+		@kotlinx.serialization.SerialName("avatar_url") val avatarUrl: String? = null,
+		val picture: String? = null,
 	)
 
 	@Serializable
