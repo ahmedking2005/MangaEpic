@@ -78,6 +78,14 @@ class SupabaseClient @Inject constructor(
 			put("email", email)
 			put("password", password)
 		}
+		return authRequestWithBody(path, body, email)
+	}
+
+	private suspend fun authRequestWithBody(
+		path: String,
+		body: kotlinx.serialization.json.JsonObject,
+		fallbackEmail: String,
+	): Result<Boolean> {
 		return request(path, "POST", body.toString(), useSessionToken = false).mapCatching { responseBody ->
 			val obj = json.decodeFromString(JsonElement.serializer(), responseBody) as? kotlinx.serialization.json.JsonObject
 				?: throw IOException("Unexpected auth response")
@@ -87,7 +95,7 @@ class SupabaseClient @Inject constructor(
 				false
 			} else {
 				val session = json.decodeFromString(AuthResponse.serializer(), responseBody)
-				saveSession(session, email)
+				saveSession(session, fallbackEmail)
 				true
 			}
 		}
@@ -118,12 +126,13 @@ class SupabaseClient @Inject constructor(
 			return Result.failure(IllegalStateException("Missing PKCE verifier"))
 		}
 		settings.supabasePkceVerifier = ""
-		return authRequest(
+		return authRequestWithBody(
 			"/auth/v1/token?grant_type=pkce",
 			buildJsonObject {
 				put("auth_code", code)
 				put("code_verifier", verifier)
 			},
+			"",
 		)
 	}
 
