@@ -329,4 +329,33 @@
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintTop_toTopOf="parent" />
 
+	<!-- Manga Epic: pause banner overlay — shown only while playback is paused
+	     (plus a 3-second tail after resume); dismissed by the close button. -->
+	<FrameLayout
+		android:id="@+id/pause_banner_container"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="140dp"
+		android:visibility="gone"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		tools:visibility="visible">
+
+		<FrameLayout
+			android:id="@+id/pause_banner_ad_slot"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" />
+
+		<ImageButton
+			android:id="@+id/button_close_pause_banner"
+			android:layout_width="28dp"
+			android:layout_height="28dp"
+			android:layout_gravity="top|end"
+			android:background="@drawable/bg_profile_close_button"
+			android:contentDescription="@string/close"
+			android:src="@drawable/ic_close" />
+
+	</FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
