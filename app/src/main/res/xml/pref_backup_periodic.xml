@@ -92,4 +92,49 @@
 
 	</PreferenceCategory>
 
+	<PreferenceCategory
+		android:key="backup_drive"
+		android:title="@string/google_drive_backup">
+
+		<Preference
+			android:icon="@drawable/ic_open_external"
+			android:key="backup_drive_account"
+			android:persistent="false"
+			android:title="@string/google_account" />
+
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:icon="@drawable/ic_timer_run"
+			android:key="backup_drive_enabled"
+			android:summary="@string/google_drive_auto_summary"
+			android:title="@string/google_drive_auto_upload" />
+
+		<Preference
+			android:icon="@drawable/ic_folder_file"
+			android:key="backup_drive_now"
+			android:persistent="false"
+			android:title="@string/backup_drive_now" />
+
+		<Preference
+			android:icon="@drawable/ic_backup_restore"
+			android:key="backup_drive_restore"
+			android:persistent="false"
+			android:title="@string/backup_drive_restore" />
+
+		<Preference
+			android:icon="@drawable/ic_info_outline"
+			android:key="backup_drive_last"
+			android:persistent="false"
+			android:selectable="false"
+			app:isPreferenceVisible="false" />
+
+		<Preference
+			android:icon="@drawable/ic_delete_all"
+			android:key="backup_drive_disconnect"
+			android:persistent="false"
+			android:title="@string/backup_drive_disconnect"
+			app:isPreferenceVisible="false" />
+
+	</PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>
