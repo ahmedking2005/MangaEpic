@@ -91,31 +91,57 @@ class AccountActivity : BaseActivity<ActivityAccountBinding>() {
 		handleOAuthReturn(intent)
 	}
 
-	/** Manga Epic: the OAuth browser flow lands back here with ?code=... on the deep link. */
+	/**
+	 * Manga Epic: auth returns land here on the deep link — OAuth (Google/Facebook)
+	 * with ?code=..., e-mail confirmation with the session in the URL fragment.
+	 */
 	private fun handleOAuthReturn(intent: Intent?) {
 		val uri = intent?.data ?: return
 		if (uri.scheme != "com.mangaepic.app") {
 			return
 		}
 		val code = uri.getQueryParameter("code")
-		if (code.isNullOrEmpty()) {
-			showError(getString(R.string.account_google_failed))
+		if (!code.isNullOrEmpty()) {
+			setBusy(true)
+			lifecycleScope.launch {
+				finishSignIn(supabase.exchangeOAuthCode(code))
+			}
 			return
 		}
-		setBusy(true)
-		lifecycleScope.launch {
-			val result = supabase.exchangeOAuthCode(code)
-			setBusy(false)
-			when {
-				result.isSuccess && result.getOrNull() == true -> {
-					registerProfileAndDevice()
-					setResult(RESULT_OK)
-					finish()
-				}
-				else -> showError(
-					result.exceptionOrNull()?.message ?: getString(R.string.account_google_failed),
-				)
+		val params = uri.fragment.orEmpty().split('&').mapNotNull { part ->
+			val idx = part.indexOf('=')
+			if (idx <= 0) {
+				null
+			} else {
+				part.substring(0, idx) to Uri.decode(part.substring(idx + 1))
 			}
+		}.toMap()
+		val accessToken = params["access_token"]
+		val refreshToken = params["refresh_token"]
+		if (!accessToken.isNullOrEmpty() && !refreshToken.isNullOrEmpty()) {
+			val expiresIn = params["expires_in"]?.toLongOrNull() ?: 3600L
+			setBusy(true)
+			lifecycleScope.launch {
+				finishSignIn(supabase.completeSessionFromTokens(accessToken, refreshToken, expiresIn))
+			}
+			return
+		}
+		if (uri.query != null || uri.fragment != null) {
+			showError(getString(R.string.account_google_failed))
+		}
+	}
+
+	private fun finishSignIn(result: Result<Boolean>) {
+		setBusy(false)
+		when {
+			result.isSuccess && result.getOrNull() == true -> {
+				registerProfileAndDevice()
+				setResult(RESULT_OK)
+				finish()
+			}
+			else -> showError(
+				result.exceptionOrNull()?.message ?: getString(R.string.account_google_failed),
+			)
 		}
 	}
 
