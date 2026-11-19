@@ -515,7 +515,8 @@ class DetailsActivity :
 	}
 
 	private fun updateDetailsAd(manga: Manga) {
-		val adBinding = viewBinding.detailsNativeAd
+		// The ad container only exists in the portrait layout; other variants have no details ad.
+		val adBinding = viewBinding.detailsNativeAd ?: return
 		val isEligible = AdMobManager.isEnabled() &&
 			manga.source != LocalMangaSource &&
 			manga.source != UnknownMangaSource &&
