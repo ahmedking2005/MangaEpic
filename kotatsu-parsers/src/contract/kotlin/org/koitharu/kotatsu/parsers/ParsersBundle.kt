@@ -52,7 +52,7 @@ public object ParsersApi {
 	 * until it does. Applications already installed then stay on the last bundle published for their version, until
 	 * they are updated themselves.
 	 */
-	public const val VERSION: Int = 1
+	public const val VERSION: Int = 2
 }
 
 /**
