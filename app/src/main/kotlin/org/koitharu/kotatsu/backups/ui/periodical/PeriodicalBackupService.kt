@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.CoroutineIntentService
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
+import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
@@ -29,16 +30,23 @@ class PeriodicalBackupService : CoroutineIntentService() {
 	lateinit var telegramBackupUploader: TelegramBackupUploader
 
 	@Inject
+	lateinit var driveBackupClient: DriveBackupClient
+
+	@Inject
 	lateinit var repository: BackupRepository
 
 	@Inject
 	lateinit var settings: AppSettings
 
 	override suspend fun IntentJobContext.processIntent(intent: Intent) {
-		if (!settings.isPeriodicalBackupEnabled || settings.periodicalBackupDirectory == null) {
+		if (!settings.isPeriodicalBackupEnabled) {
 			return
 		}
-		val lastBackupDate = externalBackupStorage.getLastBackupDate()
+		val hasLocalDir = settings.periodicalBackupDirectory != null
+		if (!hasLocalDir && !settings.isDriveBackupEnabled && !settings.isBackupTelegramUploadEnabled) {
+			return
+		}
+		val lastBackupDate = if (hasLocalDir) externalBackupStorage.getLastBackupDate() else null
 		if (lastBackupDate != null && lastBackupDate.time + settings.periodicalBackupFrequencyMillis > System.currentTimeMillis()) {
 			return
 		}
@@ -47,10 +55,20 @@ class PeriodicalBackupService : CoroutineIntentService() {
 			ZipOutputStream(output.outputStream()).use {
 				repository.createBackup(it, null)
 			}
-			externalBackupStorage.put(output)
-			externalBackupStorage.trim(settings.periodicalBackupMaxCount)
+			if (hasLocalDir) {
+				externalBackupStorage.put(output)
+				externalBackupStorage.trim(settings.periodicalBackupMaxCount)
+			}
 			if (settings.isBackupTelegramUploadEnabled && telegramBackupUploader.isAvailable) {
 				telegramBackupUploader.uploadBackup(output)
+			}
+			if (settings.isDriveBackupEnabled) {
+				runCatchingCancellable {
+					driveBackupClient.accessTokenOrNull()?.let { token ->
+						driveBackupClient.uploadBackup(token, output)
+						settings.lastDriveBackupAt = System.currentTimeMillis()
+					}
+				}
 			}
 		} finally {
 			output.delete()
