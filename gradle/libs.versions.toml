@@ -23,6 +23,7 @@ fragment = "1.8.9"
 gradle = "8.13.0"
 firebaseBom = "34.4.0"
 playServicesAuth = "21.4.0"
+browser = "1.8.0"
 media3 = "1.10.1"
 playServicesAds = "25.4.0"
 userMessagingPlatform = "4.0.0"
@@ -91,6 +92,7 @@ media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", versio
 media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3" }
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "userMessagingPlatform" }
+androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hilt" }
 androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hilt" }
