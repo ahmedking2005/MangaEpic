@@ -402,9 +402,6 @@
     <string name="profile_name_hint">Your name</string>
     <string name="profile_default_name">Reader</string>
     <string name="profile_last_7_days">Last 7 days</string>
-    <string name="profile_cover">Cover photo</string>
-    <string name="profile_cover_change">Choose a new photo</string>
-    <string name="profile_cover_remove">Remove cover</string>
     <string name="theme_name_sakura">Sakura</string>
     <string name="theme_name_mamimi">Mamimi</string>
     <string name="theme_name_kanade">Kanade</string>
