@@ -2,6 +2,10 @@ package org.koitharu.kotatsu.cloud
 
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import android.net.Uri
+import android.util.Base64
+import java.security.MessageDigest
+import java.security.SecureRandom
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -87,6 +91,46 @@ class SupabaseClient @Inject constructor(
 				true
 			}
 		}
+	}
+
+	/** Manga Epic: starts the Google OAuth flow (PKCE). Returns the URL to open in the browser. */
+	fun googleAuthorizeUrl(): String = oauthAuthorizeUrl("google")
+
+	/** Manga Epic: starts the Facebook OAuth flow (PKCE). Returns the URL to open in the browser. */
+	fun facebookAuthorizeUrl(): String = oauthAuthorizeUrl("facebook")
+
+	private fun oauthAuthorizeUrl(provider: String): String {
+		val verifier = createPkceVerifier()
+		settings.supabasePkceVerifier = verifier
+		val challenge = Base64.encodeToString(
+			MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray(Charsets.US_ASCII)),
+			Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP,
+		)
+		return "$BASE_URL/auth/v1/authorize?provider=$provider" +
+			"&redirect_to=" + Uri.encode(GOOGLE_REDIRECT_URL) +
+			"&code_challenge=$challenge&code_challenge_method=s256"
+	}
+
+	/** Manga Epic: finishes an OAuth flow (Google/Facebook) after the browser redirects back with a code. */
+	suspend fun exchangeOAuthCode(code: String): Result<Boolean> {
+		val verifier = settings.supabasePkceVerifier
+		if (verifier.isEmpty()) {
+			return Result.failure(IllegalStateException("Missing PKCE verifier"))
+		}
+		settings.supabasePkceVerifier = ""
+		return authRequest(
+			"/auth/v1/token?grant_type=pkce",
+			buildJsonObject {
+				put("auth_code", code)
+				put("code_verifier", verifier)
+			},
+		)
+	}
+
+	private fun createPkceVerifier(): String {
+		val bytes = ByteArray(48)
+		SecureRandom().nextBytes(bytes)
+		return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
 	}
 
 	suspend fun signOut() {
@@ -229,6 +273,9 @@ class SupabaseClient @Inject constructor(
 
 		/** Public by design (ships in the app); data protection is enforced by RLS. */
 		const val PUBLISHABLE_KEY = "sb_publishable_6IbWjisFaq6wwUY2n2tG7w_zPlx8Uxo"
+
+		/** Deep link the OAuth browser flow returns to (allow-listed in Supabase Auth settings). */
+		const val GOOGLE_REDIRECT_URL = "com.mangaepic.app://login-callback"
 
 		private const val EXPIRY_SKEW_MS = 60_000L
 		private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
