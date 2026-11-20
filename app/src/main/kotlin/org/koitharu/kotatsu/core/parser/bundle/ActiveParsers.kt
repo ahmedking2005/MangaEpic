@@ -42,6 +42,11 @@ private val REMOVED_SOURCES = setOf(
  * deliberately not added: MangaMello Plus (its API no longer answers) and
  * DespairManga (its site no longer serves a reader). No fence change was needed:
  * the new parsers pass the same locale/type/broken admission rules as the rest.
+ *
+ * Follow-up (2026-11-20): AnyoneManga initially declared its source via
+ * MangaParserSource.valueOf(...), which the KSP processor silently skipped, so it
+ * never reached the generated source set; it now uses the direct property form
+ * like every other parser, and the 26-source set is confirmed in the built app.
  */
 
 object ActiveParsers {

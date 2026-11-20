@@ -27,7 +27,7 @@ import java.net.URI
 internal class AnyoneManga(context: MangaLoaderContext) :
 	MadaraParser(
 		context,
-		MangaParserSource.valueOf("ANYONEMANGA"),
+		MangaParserSource.ANYONEMANGA,
 		"anyonemanga.com",
 		pageSize = 20,
 	), Interceptor {
