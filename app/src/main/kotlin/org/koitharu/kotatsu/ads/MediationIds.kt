@@ -1,15 +1,21 @@
 package org.koitharu.kotatsu.ads
 
 /**
- * Manga Epic mediation reference IDs (Mintegral + InMobi + Unity Ads, AdMob bidding).
+ * Manga Epic mediation reference IDs (Unity Ads only, via AdMob bidding).
+ *
+ * History: mediation first shipped with three networks (Mintegral + InMobi +
+ * Unity Ads) in the 2026-11-20 mediation build (devel 83107a48). By the owner's
+ * decision the same day (2026-11-20 — personal-use app, Unity-only mediation),
+ * the Mintegral and InMobi adapters were removed from the app and their sections
+ * deleted from this file; Unity Ads is the only mediation network that remains.
  *
  * IMPORTANT: AdMob Mediation does NOT read these values from the app. The mapping
  * between our AdMob ad units and each network's placements is configured in the
  * AdMob console (Mediation groups), and the networks' SDKs are initialized by the
  * Google adapters from that server-side config. This object exists as the single
- * in-repo record of the issued IDs — for support, for the app-ads.txt lines, and
- * for Mintegral/InMobi test-mode cross-checks. Fill every TODO from the network
- * dashboards, then mirror the same values into the AdMob mediation-group mappings.
+ * in-repo record of the issued IDs — for support and for the app-ads.txt lines.
+ * Fill every value from the network dashboard, then mirror the same values into
+ * the AdMob mediation-group mappings.
  *
  * Formats map 1:1 onto our four AdMob placements:
  *  - feed native        -> BuildConfig.ADMOB_FEED_NATIVE_ID
@@ -18,37 +24,9 @@ package org.koitharu.kotatsu.ads
  *  - anime pause banner -> BuildConfig.ADMOB_ANIME_PAUSE_BANNER_ID (banner)
  *
  * Unity Ads covers only the interstitial and the banner: no Unity native placement
- * was created, so the two native units stay Google + Mintegral + InMobi only.
+ * was created, so the two native units are served by Google demand only.
  */
 object MediationIds {
-
-	// ---- Mintegral (dashboard: dev.mintegral.com -> APP Setting / Placements & Units)
-	// App-level values, shown once the "Manga Epic" app is created in Mintegral.
-	const val MINTEGRAL_APP_ID = "TODO_MINTEGRAL_APP_ID"
-	const val MINTEGRAL_APP_KEY = "TODO_MINTEGRAL_APP_KEY"
-
-	// Per-placement values: each placement has BOTH a Placement ID and an Ad Unit ID;
-	// the AdMob mapping form asks for all four fields (App Key, App ID, Placement ID,
-	// Ad Unit ID). Placements must be created with Bidding Type = Header Bidding.
-	const val MINTEGRAL_PLACEMENT_FEED_NATIVE = "TODO"
-	const val MINTEGRAL_UNIT_FEED_NATIVE = "TODO"
-	const val MINTEGRAL_PLACEMENT_DETAILS_NATIVE = "TODO"
-	const val MINTEGRAL_UNIT_DETAILS_NATIVE = "TODO"
-	const val MINTEGRAL_PLACEMENT_CHAPTER_INTERSTITIAL = "TODO"
-	const val MINTEGRAL_UNIT_CHAPTER_INTERSTITIAL = "TODO"
-	const val MINTEGRAL_PLACEMENT_PAUSE_BANNER = "TODO"
-	const val MINTEGRAL_UNIT_PAUSE_BANNER = "TODO"
-
-	// ---- InMobi (dashboard: publisher.inmobi.com -> Finance > Payment Settings for
-	// the Account ID; Inventory for placements). Placements must be created with
-	// Audience Bidding = On and Partner = Google SDK Bidding. The AdMob mapping
-	// form asks for Account ID + Placement ID only.
-	const val INMOBI_ACCOUNT_ID = "TODO_INMOBI_ACCOUNT_ID"
-
-	const val INMOBI_PLACEMENT_FEED_NATIVE = "TODO"
-	const val INMOBI_PLACEMENT_DETAILS_NATIVE = "TODO"
-	const val INMOBI_PLACEMENT_CHAPTER_INTERSTITIAL = "TODO"
-	const val INMOBI_PLACEMENT_PAUSE_BANNER = "TODO"
 
 	// ---- Unity Ads (dashboard: cloud.unity.com -> Unity Ads Monetization).
 	// REAL issued values (account setup completed 2026-11-20 — not placeholders).

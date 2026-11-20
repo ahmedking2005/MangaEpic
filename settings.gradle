@@ -25,11 +25,6 @@ dependencyResolutionManagement {
 		maven {
 			url 'https://jitpack.io'
 		}
-		// Manga Epic mediation: Mintegral SDK artifacts are hosted on Mintegral's own
-		// Maven repo (required by the AdMob Mintegral adapter; see stage-mediation notes).
-		maven {
-			url 'https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea'
-		}
 	}
 }
 

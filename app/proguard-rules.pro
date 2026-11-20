@@ -32,17 +32,11 @@
 # Loaded by ACRA through ServiceLoader (META-INF/services), so nothing references it directly.
 -keep class org.koitharu.kotatsu.core.util.SentryReportSenderFactory { *; }
 
-# --- Manga Epic mediation (Mintegral + InMobi + Unity Ads via AdMob) ---
-# All three adapters and SDKs ship their own consumer rules in their AARs (Google's
+# --- Manga Epic mediation (Unity Ads via AdMob) ---
+# The adapter and SDK ship their own consumer rules in their AARs (Google's
 # Unity guide specifies no ProGuard rules at all); the keeps below are precautionary
 # so R8 never strips the adapter entry points AdMob loads by name, and so mediation
 # error reports keep readable class names.
--keep class com.google.ads.mediation.mintegral.** { *; }
--keep class com.google.ads.mediation.inmobi.** { *; }
 -keep class com.google.ads.mediation.unity.** { *; }
--keep class com.mbridge.** { *; }
--keep class com.inmobi.** { *; }
 -keep class com.unity3d.ads.** { *; }
--dontwarn com.mbridge.**
--dontwarn com.inmobi.**
 -dontwarn com.unity3d.ads.**
