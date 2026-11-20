@@ -40,7 +40,9 @@ import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListModel
 import org.koitharu.kotatsu.list.ui.model.LoadingFooter
 import org.koitharu.kotatsu.list.ui.model.LoadingState
+import org.koitharu.kotatsu.list.ui.model.MangaListModel
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.discover.domain.DiscoverRanking
 import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
@@ -95,7 +97,7 @@ class SearchViewModel @Inject constructor(
 			list.filter { it.list.isNotEmpty() }
 		} else {
 			list
-		}.sortedForDisplay()
+		}.sortedForDisplay().dedupeAcrossSections()
 		when {
 			filteredList.isEmpty() -> listOf(
 				when {
@@ -378,6 +380,57 @@ class SearchViewModel @Inject constructor(
 	 *
 	 * The sort is stable, so anything without a rank (the ranker was unavailable) keeps arrival order.
 	 */
+	/**
+	 * DEDUP: the same work returned by several sources is shown once — the
+	 * fullest copy (most chapters) wins, ties go to the earliest section in
+	 * display order (the existing source priority; the reader's own history /
+	 * favourites / local sections sort first, so their copies win ties).
+	 * Matching is by normalized title (see [DiscoverRanking.titleKey]) plus
+	 * alt-title spellings, per content type. Sections emptied by the merge
+	 * are dropped; sections that were already empty (errors) are kept.
+	 */
+	private fun List<SearchResultsListModel>.dedupeAcrossSections(): List<SearchResultsListModel> {
+		val winners = HashMap<String, MangaListModel>()
+		val itemKeys = java.util.IdentityHashMap<MangaListModel, String>()
+		val aliases = HashMap<String, String>()
+		fun canonicalKeyOf(manga: Manga): String {
+			val type = (manga.source as? ParserMangaSource)?.contentType?.name ?: "OTHER"
+			val ownKey = type + ':' + DiscoverRanking.titleKey(manga.title)
+			val key = aliases[ownKey]
+				?: manga.altTitles.firstNotNullOfOrNull { aliases[type + ':' + DiscoverRanking.titleKey(it)] }
+				?: ownKey
+			aliases[ownKey] = key
+			manga.altTitles.forEach { aliases[type + ':' + DiscoverRanking.titleKey(it)] = key }
+			return key
+		}
+
+		fun chapterCount(item: MangaListModel): Int =
+			maxOf(item.counter, item.manga.chapters?.size ?: 0)
+
+		for (section in this) {
+			for (item in section.list) {
+				val key = canonicalKeyOf(item.manga)
+				itemKeys[item] = key
+				val kept = winners[key]
+				if (kept == null || chapterCount(item) > chapterCount(kept)) {
+					winners[key] = item
+				}
+			}
+		}
+		return mapNotNull { section ->
+			if (section.list.isEmpty()) {
+				section
+			} else {
+				val keptItems = section.list.filter { item -> winners[itemKeys[item]] === item }
+				when {
+					keptItems.size == section.list.size -> section
+					keptItems.isEmpty() -> null
+					else -> section.copy(list = keptItems)
+				}
+			}
+		}
+	}
+
 	private fun List<SearchResultsListModel>.sortedForDisplay(): List<SearchResultsListModel> = sortedWith(
 		compareBy<SearchResultsListModel> { displayRanks[it.source.name]?.batch ?: -1 }
 			.thenByDescending { displayRanks[it.source.name]?.isHot == true }
