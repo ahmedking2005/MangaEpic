@@ -79,6 +79,11 @@ private val REMOVED_SOURCES = setOf(
  * every inherited selector matched nothing and the source showed an empty list;
  * the parser now reads the catalogue, details and chapters from that API and the
  * page images from the reader page's embedded storage paths.
+ *
+ * Follow-up (2026-11-20): RocksManga's slug extraction mixed the vararg and
+ * predicate forms of String.trim, which Kotlin rejects; it now trims the same two
+ * characters ('/' and '?') with the parenthesized vararg form used across the
+ * tree, fixing the compile errors that stopped build 108.
  */
 
 object ActiveParsers {

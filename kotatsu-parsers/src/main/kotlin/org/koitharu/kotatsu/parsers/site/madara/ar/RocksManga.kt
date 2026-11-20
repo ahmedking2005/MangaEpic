@@ -164,7 +164,7 @@ internal class RocksManga(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val slug = manga.url.substringAfter("/manga/").trim('/') { it == '/' || it == '?' }
+		val slug = manga.url.substringAfter("/manga/").trim('/', '?')
 			.substringBefore('?').substringBefore('#')
 		if (slug.isEmpty() || slug.contains('/')) return manga
 		val detailsUrl = "https://api.$domain/manga/${slug.urlEncoded()}"
