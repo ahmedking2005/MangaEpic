@@ -29,7 +29,7 @@ dependencyResolutionManagement {
 }
 
 include ':app'
-rootProject.name = "Kotatsu"
+rootProject.name = "MangaEpic"
 
 // Manga Epic: the maintained parsers fork is bundled with this repository
 // (kotatsu-parsers/) so a checkout contains the complete source used by the
