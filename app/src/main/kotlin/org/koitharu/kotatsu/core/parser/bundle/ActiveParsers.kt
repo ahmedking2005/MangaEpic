@@ -55,6 +55,12 @@ private val REMOVED_SOURCES = setOf(
  * ParseException with the reason instead of returning null, which the app surfaced as
  * "Novel content not supported". RistoAnime now points at ristoanime.cc, where its
  * site lives today; it previously targeted the old ristoanime.me domain.
+ *
+ * Own sources, part 2 (2026-11-20): KolNovel was rewritten in-house against a live
+ * spec sheet. Its old target, free.kolnovel.com, is dead; the site now lives at
+ * kolnovel.com on a new 'starless' theme, so the parser was rebuilt around the new
+ * markup (archive cards, /series/page/{n}/ pagination, chapters embedded in the
+ * details page, chapter text in .epcontent) instead of patching dead selectors.
  */
 
 object ActiveParsers {
