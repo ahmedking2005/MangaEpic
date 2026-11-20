@@ -29,7 +29,7 @@ internal class AnyoneMangaTest {
 			"https://anyonemanga.com/",
 		)
 
-		val result = AnyoneManga.parseAnyoneCatalogue(
+		val result = parseAnyoneCatalogue(
 			document,
 			"anyonemanga.com",
 			MangaParserSource.ANYONEMANGA,

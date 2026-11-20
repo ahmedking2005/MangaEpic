@@ -47,6 +47,7 @@ private val REMOVED_SOURCES = setOf(
  * MangaParserSource.valueOf(...), which the KSP processor silently skipped, so it
  * never reached the generated source set; it now uses the direct property form
  * like every other parser, and the 26-source set is confirmed in the built app.
+ * Follow-up 2 (2026-11-20): AnyoneManga's catalogue helper moved out of its companion to a top-level function, because a companion member signature referencing the generated MangaParserSource type defers the class past KSP round-1 generation and drops it from the generated source set.
  */
 
 object ActiveParsers {

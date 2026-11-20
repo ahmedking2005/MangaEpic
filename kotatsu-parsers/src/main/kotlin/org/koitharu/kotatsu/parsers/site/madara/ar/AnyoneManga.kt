@@ -105,43 +105,6 @@ internal class AnyoneManga(context: MangaLoaderContext) :
 
 	internal companion object {
 
-		internal fun parseAnyoneCatalogue(
-			document: Document,
-			domain: String,
-			source: MangaParserSource,
-			idFactory: (String) -> Long = { it.hashCode().toLong() },
-		): List<Manga> = document.select("div.am-manga-card").mapNotNull { card ->
-			val anchor = card.selectFirst(".am-manga-card__title a[href]")
-				?: card.selectFirst(".am-manga-card__thumb a[href]")
-				?: return@mapNotNull null
-			val href = anchor.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
-			val title = anchor.text().trim()
-				.ifEmpty { anchor.attr("title").trim() }
-				.ifEmpty { return@mapNotNull null }
-			val rating = card.selectFirst(".am-manga-card__rating .score, span.total_votes")
-				?.text()
-				?.trim()
-				?.toFloatOrNull()
-				?.div(5f)
-				?.coerceIn(0f, 1f)
-				?: RATING_UNKNOWN
-			Manga(
-				id = idFactory(href),
-				title = title,
-				altTitles = emptySet(),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
-				rating = rating,
-				contentRating = null,
-				coverUrl = card.selectFirst(".am-manga-card__thumb img, img")?.src(),
-				tags = emptySet(),
-				state = null,
-				authors = card.select(".am-manga-card__author a")
-					.mapNotNullTo(LinkedHashSet()) { it.text().trim().ifEmpty { null } },
-				source = source,
-			)
-		}.distinctBy(Manga::id)
-
 		internal fun resolveAnyoneImageUrl(image: Element, baseUrl: String): String? {
 			val raw = sequenceOf(
 				"data-src",
@@ -193,3 +156,40 @@ internal class AnyoneManga(context: MangaLoaderContext) :
 		}
 	}
 }
+
+internal fun parseAnyoneCatalogue(
+	document: Document,
+	domain: String,
+	source: MangaParserSource,
+	idFactory: (String) -> Long = { it.hashCode().toLong() },
+): List<Manga> = document.select("div.am-manga-card").mapNotNull { card ->
+	val anchor = card.selectFirst(".am-manga-card__title a[href]")
+		?: card.selectFirst(".am-manga-card__thumb a[href]")
+		?: return@mapNotNull null
+	val href = anchor.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
+	val title = anchor.text().trim()
+		.ifEmpty { anchor.attr("title").trim() }
+		.ifEmpty { return@mapNotNull null }
+	val rating = card.selectFirst(".am-manga-card__rating .score, span.total_votes")
+		?.text()
+		?.trim()
+		?.toFloatOrNull()
+		?.div(5f)
+		?.coerceIn(0f, 1f)
+		?: RATING_UNKNOWN
+	Manga(
+		id = idFactory(href),
+		title = title,
+		altTitles = emptySet(),
+		url = href,
+		publicUrl = href.toAbsoluteUrl(domain),
+		rating = rating,
+		contentRating = null,
+		coverUrl = card.selectFirst(".am-manga-card__thumb img, img")?.src(),
+		tags = emptySet(),
+		state = null,
+		authors = card.select(".am-manga-card__author a")
+			.mapNotNullTo(LinkedHashSet()) { it.text().trim().ifEmpty { null } },
+		source = source,
+	)
+}.distinctBy(Manga::id)
