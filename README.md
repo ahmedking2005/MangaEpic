@@ -12,6 +12,7 @@
   <img src="https://img.shields.io/badge/Android-6.0%2B-green" alt="Android 6.0+">
   <img src="https://img.shields.io/badge/Kotlin-2.2.10-purple" alt="Kotlin 2.2.10">
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue" alt="License GPL-3.0">
+  <a href="https://github.com/ahmedking2005/MangaEpic/actions/workflows/build-apk.yml"><img src="https://github.com/ahmedking2005/MangaEpic/actions/workflows/build-apk.yml/badge.svg?branch=devel" alt="Build APK"></a>
 </p>
 
 ## عن التطبيق
@@ -22,7 +23,7 @@
 
 هذه المميزات موجودة في نسخة Manga Epic فقط، وليست في النسخة الأساسية:
 
-- **مصادر عربية فقط:** أُبقي على 49 مصدرًا عربيًا عاملًا للمانجا والمانهوا والمانها المترجمة للعربية.
+- **مصادر عربية فقط:** 24 مصدرًا عربيًا عاملًا: 15 للمانجا والمانهوا والمانها المترجمة للعربية، و6 للروايات، و3 للأنمي.
 - **حذف كل المصادر غير العربية:** أُزيلت مئات المصادر الأجنبية من أصل أكثر من 900 مصدر في النسخة الأساسية.
 - **حذف كل المصادر المعطّلة:** أُزيل كل مصدر متوقف عن العمل، فلا نتائج ميتة ولا روابط فاسدة.
 - **فلترة مدمجة في الكود نفسه:** حتى عند وصول تحديثات جديدة لحزم المصادر، لا يظهر داخل التطبيق إلا المصادر العربية العاملة فقط.

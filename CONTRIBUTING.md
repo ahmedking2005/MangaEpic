@@ -1,11 +1,22 @@
-## Kotatsu contribution guidelines
+# Contributing to Manga Epic
 
-+ If you want to **fix bugs** or **implement new features** that **already have an [issue card](https://github.com/Kotatsu-Redo/Kotatsu-Redo/issues):** please assign this issue to you and/or comment about it.
-+ If you want to **implement a new feature:** open an issue or discussion regarding it to ensure it will be accepted.
-+ In case you want to **add a new manga source,** refer to the [parsers repository](https://github.com/Kotatsu-Redo/kotatsu-parsers-redo).
+Manga Epic is an Arabic-only fork of
+[Kotatsu-Redo](https://github.com/Kotatsu-Redo/Kotatsu-Redo) (GPL-3.0).
 
-**Refactoring** or some **dev-faces improvements** might also be accepted. However, please stick to the following principles:
+## Ground rules
 
-+ **Performance matters.** In the case of choosing between source code beauty and performance, performance should be a priority. 
-+ Please, **do not modify readme and other information files** (except for typos).
-+ **Avoid adding new dependencies** unless required. APK size is important.
+- **Arabic sources only.** The working set is 24 sources (15 manga,
+  6 novels, 3 anime). New sources must be Arabic, working, and pass the
+  fence audit (they must not surface non-Arabic or adult catalogues).
+- **Parsers** live in the vendored `kotatsu-parsers/` tree in this repo.
+- **Small, verified changes.** One change per pull request, and the
+  `Build APK (Manga Epic)` workflow must be green.
+- **No dead UI.** Every visible control must do what it promises;
+  advanced settings are hidden behind «إعدادات متقدمة», never stubbed.
+- **Do not commit** keystores, secrets, `.idea/`, or build outputs
+  (`app/release/`).
+
+## Building
+
+JDK 21 + Android SDK (platform 37, build-tools 35). `./gradlew assembleRelease`
+produces an unsigned APK; CI signs and publishes releases.
