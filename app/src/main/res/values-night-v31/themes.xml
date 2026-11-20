@@ -2,7 +2,7 @@
 <resources>
 
 	<style name="Base.V31.Kotatsu" parent="Base.V27.Kotatsu">
-		<item name="android:windowSplashScreenAnimatedIcon">@drawable/img_splash_logo</item>
+		<item name="android:windowSplashScreenAnimatedIcon">@drawable/img_splash_logo_padded</item>
 		<item name="android:windowSplashScreenAnimationDuration">@integer/splash_screen_duration</item>
 		<item name="android:windowSplashScreenBackground">@color/splash_background</item>
 	</style>
