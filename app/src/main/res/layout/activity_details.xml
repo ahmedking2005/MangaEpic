@@ -130,7 +130,7 @@
 					android:layout_marginTop="4dp"
 					android:layout_marginEnd="16dp"
 					android:ellipsize="end"
-					android:maxLines="3"
+					android:maxLines="2"
 					android:textAppearance="?attr/textAppearanceBodyMedium"
 					android:textIsSelectable="true"
 					app:layout_constraintEnd_toEndOf="parent"
@@ -342,7 +342,7 @@
 					app:barrierDirection="bottom"
 					app:barrierMargin="@dimen/margin_normal"
 					app:barrierAllowsGoneWidgets="false"
-					app:constraint_referenced_ids="imageView_cover,chip_favorite,button_community_rating,group_community_stars,button_community_comments" />
+					app:constraint_referenced_ids="imageView_cover,textView_title,textView_subtitle,chip_favorite,button_community_rating,group_community_stars,button_community_comments" />
 
 				<include layout="@layout/layout_details_table" />
 
