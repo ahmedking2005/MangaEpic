@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.ParsersBundle
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
+import org.koitharu.kotatsu.parsers.model.AnimeStream
 import org.koitharu.kotatsu.parsers.model.Favicons
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -17,6 +18,7 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.NovelChapterContent
 import org.koitharu.kotatsu.parsers.model.ParserMangaSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
@@ -85,6 +87,14 @@ class LiveMangaParser(
 	override suspend fun getFavicons(): Favicons = request { it.getFavicons() }
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> = request { it.getRelatedManga(seed) }
+
+	override suspend fun getChapterContent(chapter: MangaChapter): NovelChapterContent? = request {
+		it.getChapterContent(chapter)
+	}
+
+	override suspend fun getVideoStreams(chapter: MangaChapter): List<AnimeStream> = request {
+		it.getVideoStreams(chapter)
+	}
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) = call { it.onCreateConfig(keys) }
 

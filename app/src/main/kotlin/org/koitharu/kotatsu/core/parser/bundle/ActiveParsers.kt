@@ -84,6 +84,15 @@ private val REMOVED_SOURCES = setOf(
  * predicate forms of String.trim, which Kotlin rejects; it now trims the same two
  * characters ('/' and '?') with the parenthesized vararg form used across the
  * tree, fixing the compile errors that stopped build 108.
+ *
+ * App fix (2026-11-20): LiveMangaParser, the wrapper every repository call goes
+ * through, delegated eighteen of the twenty MangaParser members but never
+ * overrode getChapterContent or getVideoStreams, so both fell through to the
+ * interface defaults — null chapter content for every novel source ("Novel
+ * content not supported") and an empty stream list for every anime source —
+ * no matter what the parsers themselves returned. Both are now delegated like
+ * every other site call. This was the common-path cause behind the on-device
+ * verdict that novels and anime did not play while lists and details worked.
  */
 
 object ActiveParsers {
