@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	The raw wordmark spans ~96% of its bitmap, so the Android 12+ splash
+	mask (a 240dp circle inside a 288dp viewport) clipped its left/right
+	edges. This layer-list pads the bitmap inside a square canvas so the
+	wordmark lands well within the mask's safe circle (~176dp of 288dp).
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:bottom="230dp"
+		android:left="160dp"
+		android:right="160dp"
+		android:top="230dp">
+		<bitmap android:src="@drawable/img_splash_logo" />
+	</item>
+</layer-list>
