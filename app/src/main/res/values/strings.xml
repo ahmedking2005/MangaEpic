@@ -130,7 +130,7 @@
     <string name="enter_password">Enter password</string>
     <string name="wrong_password">Wrong password</string>
     <string name="protect_application">Protect the app</string>
-    <string name="protect_application_summary">Ask for password when starting Kotatsu</string>
+    <string name="protect_application_summary">Ask for password when starting Manga Epic</string>
     <string name="repeat_password">Repeat the password</string>
     <string name="passwords_mismatch">Mismatching passwords</string>
     <string name="about">About</string>
@@ -357,7 +357,7 @@
     <string name="import_completed_hint">You can delete the original file from storage to save space</string>
     <string name="import_will_start_soon">Import will start soon</string>
     <string name="feed">Feed</string>
-    <string name="manga_error_description_pattern">Error details:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Try to &lt;a href="%2$s"&gt;open manga in a web browser&lt;/a&gt; to ensure it is available on its source&lt;br&gt;2. Make sure you are using the &lt;a href="kotatsu://about"&gt;latest version of Kotatsu&lt;/a&gt;&lt;br&gt;3. If it is available, send an error report to the developers.</string>
+    <string name="manga_error_description_pattern">Error details:&lt;br&gt;&lt;tt&gt;%1$s&lt;/tt&gt;&lt;br&gt;&lt;br&gt;1. Try to &lt;a href="%2$s"&gt;open manga in a web browser&lt;/a&gt; to ensure it is available on its source&lt;br&gt;2. Make sure you are using the &lt;a href="kotatsu://about"&gt;latest version of Manga Epic&lt;/a&gt;&lt;br&gt;3. If it is available, send an error report to the developers.</string>
     <string name="history_shortcuts">Show recent manga shortcuts</string>
     <string name="history_shortcuts_summary">Make recent manga available by long pressing on application icon</string>
     <string name="reader_control_ltr_summary">Do not adjust the page switching direction to the reader mode, e. g. pressing the right key always switches to the next page. This option affects only hardware input devices</string>
@@ -576,13 +576,13 @@
     <string name="community_delete">Delete everything about me</string>
     <string name="community_delete_summary">Erases your ratings and comments from the server, permanently</string>
     <string name="community_delete_confirm">This erases your ratings, removes your comments and deletes your identity. It cannot be undone.</string>
-    <string name="community_sponsor">Support Kotatsu-Redo</string>
+    <string name="community_sponsor">Support Manga Epic</string>
     <string name="community_intro_replay">Show introduction</string>
     <string name="community_intro_replay_summary">Walk through the community features again</string>
 
     <!-- Onboarding -->
     <string name="community_intro_title">Comments and ratings</string>
-    <string name="community_intro_body">Kotatsu-Redo can now show comments and ratings from other readers, and use what everyone learns to put the sources that actually work at the top of your searches.\n\nThere is no account. No email, no password. Your device makes a random key and that is your whole identity — you can back it up and move it to a new phone.</string>
+    <string name="community_intro_body">Manga Epic can now show comments and ratings from other readers, and use what everyone learns to put the sources that actually work at the top of your searches.\n\nThere is no account. No email, no password. Your device makes a random key and that is your whole identity — you can back it up and move it to a new phone.</string>
     <string name="community_recover">Restore</string>
     <string name="community_recover_title">Restore your account</string>
     <string name="community_recover_body">Paste the recovery key from your other device. You will find it there under Settings, Services, Community.
@@ -616,9 +616,9 @@ Optional — skip it and you appear as anon.</string>
     <string name="community_nickname_too_long">24 characters at most</string>
     <string name="community_nickname_blocked">&#8220;%s&#8221; isn\'t allowed in a nickname</string>
     <string name="community_sponsor_title">Where the money goes</string>
-    <string name="community_sponsor_body">Kotatsu-Redo is free and has no ads. All donations go to the project.</string>
+    <string name="community_sponsor_body">Manga Epic is free and has no ads. All donations go to the project.</string>
     <string name="community_sponsor_perk">As a little thank-you, donors get a small crown next to their name on comments.</string>
-    <string name="community_donation_reminder">Kotatsu-Redo is free and has no ads. All donations go to the project, and as a little thank-you, donors get a small crown next to their name on comments.</string>
+    <string name="community_donation_reminder">Manga Epic is free and has no ads. All donations go to the project, and as a little thank-you, donors get a small crown next to their name on comments.</string>
     <string name="community_supporter_author">%s, supporter</string>
     <string name="community_sponsor_reports">Reports are posted on the Discord.</string>
     <string name="community_sponsor_open">Become a sponsor</string>
@@ -815,7 +815,7 @@ Optional — skip it and you appear as anon.</string>
     <string name="show_pages_thumbs">Show pages thumbnails</string>
     <string name="show_pages_thumbs_summary">Enable the \"Pages\" tab on the details screen</string>
     <string name="error_no_data_received">No data was received from server</string>
-    <string name="unsupported_backup_message">Please select a proper Kotatsu backup file</string>
+    <string name="unsupported_backup_message">Please select a proper Manga Epic backup file</string>
     <string name="backup_file_incomplete">This backup file is incomplete. It was probably not fully saved or copied</string>
     <string name="list_ellipsize_pattern" translatable="false">(+%d)</string>
     <!-- Short hours format pattern -->
@@ -877,8 +877,8 @@ Optional — skip it and you appear as anon.</string>
     <string name="chapters_read">Chapters read</string>
     <string name="chapters_left">Chapters left</string>
     <string name="external_source">External/plugin</string>
-    <string name="plugin_incompatible">Incompatible plugin or internal error. Make sure you are using the latest version of the plugin and Kotatsu</string>
-    <string name="plugin_incompatible_with_cause">Plugin error: %s\n Make sure you are using the latest version of the plugin and Kotatsu</string>
+    <string name="plugin_incompatible">Incompatible plugin or internal error. Make sure you are using the latest version of the plugin and Manga Epic</string>
+    <string name="plugin_incompatible_with_cause">Plugin error: %s\n Make sure you are using the latest version of the plugin and Manga Epic</string>
     <string name="connection_ok">Connection is OK</string>
     <string name="invalid_proxy_configuration">Invalid proxy configuration</string>
     <string name="show_quick_filters">Show quick filters</string>
@@ -984,7 +984,7 @@ Optional — skip it and you appear as anon.</string>
     <string name="send_backups_telegram">Send backups in Telegram</string>
     <string name="test_connection">Test connection</string>
     <string name="telegram_chat_id_summary">Enter the chat ID where backups should be sent</string>
-    <string name="open_telegram_bot_summary">Press to open chat with Kotatsu Backup Bot</string>
+    <string name="open_telegram_bot_summary">Press to open chat with Manga Epic Backup Bot</string>
     <string name="clear_database">Clear database</string>
     <string name="clear_database_summary">Delete information about manga that is not used</string>
     <string name="enable_all_sources">Enable all manga sources</string>
@@ -1014,10 +1014,10 @@ Optional — skip it and you appear as anon.</string>
     <string name="search_disabled_sources">Search through disabled sources</string>
     <string name="error_details">Error details</string>
     <string name="error_disclaimer_manga">Try to open manga in a web browser to ensure it is available on its source.</string>
-    <string name="error_disclaimer_app_outdated">It looks like your version of Kotatsu is out of date. Please install the latest version to get all available fixes.</string>
+    <string name="error_disclaimer_app_outdated">It looks like your version of Manga Epic is out of date. Please install the latest version to get all available fixes.</string>
     <string name="error_disclaimer_report">You can submit a bug report to the developers. This will help us investigate and fix the issue.</string>
     <string name="link_to_manga_on_s">Link to manga on %s</string>
-    <string name="link_to_manga_in_app">Link to manga in Kotatsu</string>
+    <string name="link_to_manga_in_app">Link to manga in Manga Epic</string>
     <string name="clear_browser_data">Clear browser data</string>
     <string name="clear_browser_data_summary">Clear browser data such as cache and cookies. Warning: Authorization in manga sources may become invalid</string>
     <string name="no_write_permission_to_file">Does not have permission to write a file</string>
@@ -1064,7 +1064,7 @@ Optional — skip it and you appear as anon.</string>
     <string name="discord_token_hint">Paste your Discord Token here</string>
     <string name="discord_rpc_summary">Show your reading status on Discord</string>
     <string name="obtain">Obtain</string>
-    <string name="discord_rpc_description">Reading manga on Kotatsu - a manga reader app</string>
+    <string name="discord_rpc_description">Reading manga on Manga Epic - a manga reader app</string>
     <string name="reading_s">Reading %s</string>
     <string name="read_on_s">Read on %s</string>
     <string name="rpc_skip_nsfw_summary">Do not use RPC for adult content</string>

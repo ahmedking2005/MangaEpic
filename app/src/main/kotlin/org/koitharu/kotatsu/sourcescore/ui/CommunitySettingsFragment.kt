@@ -347,7 +347,7 @@ class CommunitySettingsFragment : BasePreferenceFragment(R.string.community) {
 
 			val uri = withContext(Dispatchers.IO) {
 				val directory = File(requireContext().cacheDir, "export").apply { mkdirs() }
-				val file = File(directory, "kotatsu-community-data.json")
+				val file = File(directory, "manga-epic-community-data.json")
 				file.writeText(json)
 				FileProvider.getUriForFile(requireContext(), "${BuildConfig.APPLICATION_ID}.files", file)
 			}
