@@ -1,0 +1,95 @@
+# Manga Epic — hand-authored Baseline Profile (2026-11-20).
+#
+# Why hand-authored: the app is distributed as a sideloaded APK, so no Play
+# cloud profile exists, and macrobenchmark generation needs a device lab.
+# Rules below cover the measured hot paths: cold start (Application ->
+# MainActivity -> first feed), list scrolling/binding, the Coil request path,
+# details entry, and reader entry. Rules that match nothing are ignored by
+# ART, and R8 remaps every rule through obfuscation at build time, so this
+# file always names pre-obfuscation classes. Keep it focused: profile size
+# is paid on every install.
+
+# ---- Cold start: application ----
+HSPLorg/koitharu/kotatsu/KotatsuApp;-><init>()V
+HSPLorg/koitharu/kotatsu/Hilt_KotatsuApp;->onCreate()V
+HSPLorg/koitharu/kotatsu/core/BaseApp;->attachBaseContext(Landroid/content/Context;)V
+HSPLorg/koitharu/kotatsu/core/BaseApp;->onCreate()V
+SPLorg/koitharu/kotatsu/core/BaseApp;->setupActivityLifecycleCallbacks()V
+SPLorg/koitharu/kotatsu/core/prefs/AppSettings;-><init>(Landroid/content/Context;)V
+SPLorg/koitharu/kotatsu/core/parser/bundle/ParsersUpdater;->start(Landroid/app/Application;)V
+Lorg/koitharu/kotatsu/core/parser/bundle/ActiveParsers;
+Lorg/koitharu/kotatsu/core/parser/bundle/ActiveParsers$Generation;
+Lorg/koitharu/kotatsu/core/parser/bundle/ActiveParsers$Startup;
+Lorg/koitharu/kotatsu/core/parser/MangaLoaderContextImpl;
+Lorg/koitharu/kotatsu/core/db/MangaDatabase;
+Lorg/koitharu/kotatsu/core/AppModule;
+Lorg/koitharu/kotatsu/core/AppModule$Companion;
+Lorg/koitharu/kotatsu/cloud/RemoteConfigManager;
+
+# ---- Cold start: main activity and navigation ----
+HSPLorg/koitharu/kotatsu/main/ui/MainActivity;->onCreate(Landroid/os/Bundle;)V
+SPLorg/koitharu/kotatsu/main/ui/MainActivity;->onStart()V
+Lorg/koitharu/kotatsu/main/ui/MainNavigationDelegate;
+Lorg/koitharu/kotatsu/main/ui/MainViewModel;
+
+# ---- First screen: discover feed ----
+PLorg/koitharu/kotatsu/discover/ui/DiscoverFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;
+PLorg/koitharu/kotatsu/discover/ui/DiscoverFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
+Lorg/koitharu/kotatsu/discover/ui/DiscoverViewModel;
+Lorg/koitharu/kotatsu/discover/ui/DiscoverAdapterDelegatesKt;
+
+# ---- Lists: fragments, adapters, delegates, diffing (scroll hot path) ----
+Lorg/koitharu/kotatsu/list/ui/MangaListFragment;
+Lorg/koitharu/kotatsu/list/ui/MangaListViewModel;
+HLorg/koitharu/kotatsu/list/ui/adapter/MangaListAdapter;-><init>(Lorg/koitharu/kotatsu/list/ui/adapter/MangaListListener;Lorg/koitharu/kotatsu/list/ui/size/ItemSizeResolver;Z)V
+Lorg/koitharu/kotatsu/list/ui/ListModelDiffCallback;
+HLorg/koitharu/kotatsu/list/ui/adapter/MangaGridItemADKt;
+HLorg/koitharu/kotatsu/list/ui/adapter/MangaListItemADKt;
+HLorg/koitharu/kotatsu/list/ui/adapter/MangaListDetailedItemADKt;
+Lorg/koitharu/kotatsu/list/ui/model/ListModel;
+Lorg/koitharu/kotatsu/list/ui/model/MangaGridModel;
+Lorg/koitharu/kotatsu/list/ui/model/MangaListModel;
+Lorg/koitharu/kotatsu/core/ui/list/BaseListAdapter;
+
+# ---- Explore / sources ----
+PLorg/koitharu/kotatsu/explore/ui/ExploreFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
+Lorg/koitharu/kotatsu/explore/ui/ExploreViewModel;
+Lorg/koitharu/kotatsu/explore/ui/adapter/ExploreAdapter;
+Lorg/koitharu/kotatsu/explore/ui/adapter/ExploreAdapterDelegatesKt;
+
+# ---- Library tabs ----
+Lorg/koitharu/kotatsu/favourites/ui/FavouritesActivity;
+Lorg/koitharu/kotatsu/history/ui/HistoryListFragment;
+Lorg/koitharu/kotatsu/history/ui/HistoryListViewModel;
+
+# ---- Image pipeline (every cover on every screen) ----
+HLorg/koitharu/kotatsu/core/image/CoilImageView;->setImageAsync(Ljava/lang/String;)Lcoil3/request/Disposable;
+HLorg/koitharu/kotatsu/core/image/CoilImageView;->enqueueRequest(Lcoil3/request/ImageRequest;Z)Lcoil3/request/Disposable;
+Lorg/koitharu/kotatsu/core/image/CoilImageView;
+Lcoil3/ImageLoader;
+Lcoil3/request/ImageRequest;
+Landroidx/recyclerview/widget/RecyclerView;
+Landroidx/recyclerview/widget/LinearLayoutManager;
+Landroidx/recyclerview/widget/GridLayoutManager;
+
+# ---- Details entry ----
+PLorg/koitharu/kotatsu/details/ui/DetailsActivity;->onCreate(Landroid/os/Bundle;)V
+Lorg/koitharu/kotatsu/details/ui/DetailsViewModel;
+Lorg/koitharu/kotatsu/details/domain/DetailsLoadUseCase;
+Lorg/koitharu/kotatsu/details/ui/ChaptersMapper;
+
+# ---- Reader entry ----
+PLorg/koitharu/kotatsu/reader/ui/ReaderActivity;->onCreate(Landroid/os/Bundle;)V
+Lorg/koitharu/kotatsu/reader/ui/ReaderViewModel;
+Lorg/koitharu/kotatsu/reader/domain/PageLoader;
+Lorg/koitharu/kotatsu/reader/domain/PagePreloader;
+Lorg/koitharu/kotatsu/reader/ui/pager/BaseReaderFragment;
+Lorg/koitharu/kotatsu/reader/ui/pager/BaseReaderAdapter;
+Lorg/koitharu/kotatsu/reader/ui/pager/BasePageHolder;
+Lorg/koitharu/kotatsu/reader/ui/pager/webtoon/WebtoonReaderFragment;
+
+# ---- Repositories under every screen ----
+Lorg/koitharu/kotatsu/core/parser/ParserMangaRepository;
+Lorg/koitharu/kotatsu/core/parser/CachingMangaRepository;
+Lorg/koitharu/kotatsu/core/parser/MangaDataRepository;
+Lorg/koitharu/kotatsu/core/parser/MangaRepository;

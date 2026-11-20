@@ -269,6 +269,7 @@ dependencies {
 	implementation libs.androidx.core
 	implementation libs.androidx.activity
 	implementation libs.androidx.fragment
+	implementation libs.androidx.profileinstaller
 	implementation libs.androidx.transition
 	implementation libs.androidx.collection
 	implementation libs.lifecycle.viewmodel
