@@ -60,6 +60,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.ads.AdMobManager
 import org.koitharu.kotatsu.anime.data.AnimePlaybackRepository
 import org.koitharu.kotatsu.anime.data.AnimeStreamSelector
+import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableChapter
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.model.isLocal
@@ -67,6 +68,7 @@ import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.core.util.ext.consumeAllSystemBarsInsets
+import org.koitharu.kotatsu.core.util.ext.findCloudFlareException
 import org.koitharu.kotatsu.core.util.ext.getParcelableArrayListExtraCompat
 import org.koitharu.kotatsu.core.util.ext.getParcelableExtraCompat
 import org.koitharu.kotatsu.core.util.ext.systemBarsInsets
@@ -410,25 +412,17 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		showLoading(true)
 		loadJob = lifecycleScope.launch {
 			runCatching {
-				val downloadedFile = localMangaRepository.findDownloadedEpisodeFile(manga, episode.id)
-				if (downloadedFile != null) {
-					listOf(
-						AnimeStream(
-							name = getString(R.string.downloaded),
-							url = downloadedFile.toUri().toString(),
-						),
-					)
+				fetchEpisodeStreams(resolveDetails)
+			}.recoverCatching { error ->
+				// Cycle 3: a Cloudflare challenge on the details/stream fetch used
+				// to be swallowed straight into the blind refresh loop, so gated
+				// sources could never recover in-player. Resolve the challenge
+				// the way the rest of the app does and retry the fetch once;
+				// any other failure keeps the existing path.
+				if (resolveCloudflareChallenge(error)) {
+					fetchEpisodeStreams(resolveDetails)
 				} else {
-					if (resolveDetails) {
-						val resolved = repositoryFactory.create(manga.source).getDetails(manga)
-						manga = if (resolved.chapters.isNullOrEmpty()) {
-							resolved.copy(chapters = manga.chapters)
-						} else {
-							resolved
-						}
-						episode = manga.chapters?.firstOrNull { it.id == episode.id } ?: episode
-					}
-					checkNotNull(playbackRepository).getAnimeStreams(episode)
+					throw error
 				}
 			}.onSuccess { result ->
 				streams = AnimeStreamSelector.orderForPlayback(result, selectedQualityHeight)
@@ -449,6 +443,44 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 				refreshStreamsAfterFailure(resumePositionMs)
 			}
 		}
+	}
+
+	private suspend fun fetchEpisodeStreams(resolveDetails: Boolean): List<AnimeStream> {
+		val downloadedFile = localMangaRepository.findDownloadedEpisodeFile(manga, episode.id)
+		if (downloadedFile != null) {
+			return listOf(
+				AnimeStream(
+					name = getString(R.string.downloaded),
+					url = downloadedFile.toUri().toString(),
+				),
+			)
+		}
+		if (resolveDetails) {
+			val resolved = repositoryFactory.create(manga.source).getDetails(manga)
+			manga = if (resolved.chapters.isNullOrEmpty()) {
+				resolved.copy(chapters = manga.chapters)
+			} else {
+				resolved
+			}
+			episode = manga.chapters?.firstOrNull { it.id == episode.id } ?: episode
+		}
+		return checkNotNull(playbackRepository).getAnimeStreams(episode)
+	}
+
+	/**
+	 * Routes a Cloudflare challenge hit by the player's fetches through the
+	 * same resolution the rest of the app uses: [exceptionResolver] first tries
+	 * the coordinator's auto-resolve (which also awaits a session another
+	 * screen may already be running), then the manual solver that every other
+	 * screen offers as its "Solve" action — the player has no error-action UI
+	 * at fetch time, so it goes straight there. Returns true when the
+	 * challenge was resolved and the caller should retry its fetch once.
+	 */
+	private suspend fun resolveCloudflareChallenge(error: Throwable): Boolean {
+		val cf = error.findCloudFlareException() as? CloudFlareProtectedException ?: return false
+		if (isFinishing || isDestroyed) return false
+		if (exceptionResolver.resolve(cf, tryAutoResolve = true)) return true
+		return exceptionResolver.resolve(cf, tryAutoResolve = false)
 	}
 
 	private fun playStream(index: Int, positionMs: Long) {
@@ -593,12 +625,27 @@ class AnimePlayerActivity : BaseActivity<ActivityAnimePlayerBinding>() {
 		loadJob = lifecycleScope.launch {
 			var refreshed = emptyList<AnimeStream>()
 			var lastFailure: Throwable? = null
+			var isChallengeResolutionAttempted = false
 			while (refreshed.isEmpty() && streamRefreshAttempts < MAX_STREAM_REFRESH_ATTEMPTS) {
 				if (streamRefreshAttempts > 0) delay(STREAM_REFRESH_RETRY_DELAY_MS)
 				streamRefreshAttempts++
-				runCatching { repository.getAnimeStreams(episode) }
-					.onSuccess { refreshed = it }
-					.onFailure { lastFailure = it }
+				val result = runCatching { repository.getAnimeStreams(episode) }
+				result.onSuccess { refreshed = it }
+				val failure = result.exceptionOrNull() ?: continue
+				lastFailure = failure
+				// Cycle 3: a Cloudflare challenge inside the refresh loop gets
+				// one resolution attempt (the same routing as the initial load);
+				// on success the retry does not consume the refresh budget, so
+				// the fetch is retried exactly once with the challenge solved.
+				// Any other failure keeps the bounded loop exactly as it was.
+				if (!isChallengeResolutionAttempted &&
+					failure.findCloudFlareException() is CloudFlareProtectedException
+				) {
+					isChallengeResolutionAttempted = true
+					if (resolveCloudflareChallenge(failure)) {
+						streamRefreshAttempts--
+					}
+				}
 			}
 			isRefreshingStreams = false
 			showLoading(false)
