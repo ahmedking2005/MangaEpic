@@ -280,7 +280,7 @@ class DiscoverRepository @Inject constructor(
 		val list = runCatchingCancellable { suggestions.getTopList(MAX_FOR_YOU * 4) }
 			.onFailure { it.printStackTraceDebug() }
 			.getOrDefault(emptyList())
-		return list.applyReaderFilters().asSequence()
+		return DiscoverRanking.mergeDuplicates(list.applyReaderFilters()).asSequence()
 			.filter { DiscoverRanking.matchesGenre(it, filter.genre) }
 			.filter { DiscoverRanking.matchesType(it, filter.type, (it.source as? ParserMangaSource)?.contentType) }
 			.take(MAX_FOR_YOU)
