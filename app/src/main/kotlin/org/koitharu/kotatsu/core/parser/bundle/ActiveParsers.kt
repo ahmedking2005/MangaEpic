@@ -73,6 +73,12 @@ private val REMOVED_SOURCES = setOf(
  * chapter page itself; the parser now extracts the fold from the page, falls back
  * to that transport read at runtime, and throws a ParseException for genuinely
  * empty chapters instead of returning null or the promo shell.
+ *
+ * Own sources, part 4 (2026-11-20): RocksManga was rewritten in-house. The site was
+ * rebuilt as a custom Next.js app on a public JSON API (api.rocksmanga.com), so
+ * every inherited selector matched nothing and the source showed an empty list;
+ * the parser now reads the catalogue, details and chapters from that API and the
+ * page images from the reader page's embedded storage paths.
  */
 
 object ActiveParsers {
