@@ -241,7 +241,7 @@ internal class KolNovel(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(chapterUrl).parseHtml()
 		val content = doc.selectFirst(".epcontent.entry-content")
 			?: doc.selectFirst(".kol-app-text")
-			?: throw ParseException("KolNovel: chapter text container not found at $chapterUrl")
+			?: throw ParseException("KolNovel: chapter text container not found", chapterUrl)
 		content.select(
 			"script, style, iframe, noscript, form, ins, .code-block, [id^=pf-], " +
 				".kol-reader-floating-tools, .kol-rs-accordion, nav, button, a",
@@ -254,7 +254,7 @@ internal class KolNovel(context: MangaLoaderContext) :
 			if (p.text().isBlank() && p.selectFirst("img") == null) p.remove()
 		}
 		if (content.text().isBlank() && content.selectFirst("img") == null) {
-			throw ParseException("KolNovel: chapter content is empty at $chapterUrl")
+			throw ParseException("KolNovel: chapter content is empty", chapterUrl)
 		}
 		val images = content.select("img").mapNotNull { img ->
 			img.src()?.let { url ->

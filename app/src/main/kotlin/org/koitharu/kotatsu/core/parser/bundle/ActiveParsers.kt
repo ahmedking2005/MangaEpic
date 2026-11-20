@@ -61,6 +61,10 @@ private val REMOVED_SOURCES = setOf(
  * kolnovel.com on a new 'starless' theme, so the parser was rebuilt around the new
  * markup (archive cards, /series/page/{n}/ pagination, chapters embedded in the
  * details page, chapter text in .epcontent) instead of patching dead selectors.
+ *
+ * Follow-up (2026-11-20): KolNovel's two ParseException throws now pass the chapter
+ * URL as the constructor's required url argument, matching the tree-wide convention
+ * (Azoramoon, Rewayat) and fixing the compile errors that stopped build 103.
  */
 
 object ActiveParsers {
