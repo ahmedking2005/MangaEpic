@@ -1003,7 +1003,7 @@
 	<string name="manga_pinned">مثبّتة</string>
 	<string name="manga_unpinned">غير مثبّتة</string>
 	<string name="breadcrumbs_separator"><![CDATA[" > "]]></string>
-	<string name="chapters_time_pattern">%1$s (%2$s)</string>
+	<string name="chapters_time_pattern">%1$s • وقت القراءة التقريبي: %2$s</string>
 	<string name="reader_chapter_toast">إظهار نافذة تغيير الفصل</string>
 	<string name="reader_chapter_toast_summary">إظهار رسالة منبثقة بعنوان الفصل عند تغييره</string>
 	<string name="disable_captcha_auto_solve">تعطيل حل الكابتشا تلقائيًا</string>
