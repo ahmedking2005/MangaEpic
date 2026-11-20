@@ -3,12 +3,6 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:title="@string/accounts_and_sync">
-	<PreferenceScreen
-		android:fragment="org.koitharu.kotatsu.settings.SyncSettingsFragment"
-		android:icon="@drawable/ic_sync"
-		android:key="sync_settings"
-		android:title="@string/sync" />
-
 	<PreferenceCategory android:title="@string/tracking">
 
 		<Preference

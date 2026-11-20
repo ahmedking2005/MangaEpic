@@ -26,7 +26,6 @@ import org.koitharu.kotatsu.core.util.ext.tryLaunch
 import org.koitharu.kotatsu.databinding.SheetWelcomeBinding
 import org.koitharu.kotatsu.filter.ui.model.FilterProperty
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.sync.domain.SyncController
 import java.util.Locale
 import javax.inject.Inject
 
@@ -35,9 +34,6 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 	ActivityResultCallback<Uri?> {
 
 	private val viewModel by viewModels<WelcomeViewModel>()
-
-	@Inject
-	lateinit var syncController: SyncController
 
 	private val backupSelectCall = registerForActivityResult(
 		ActivityResultContracts.OpenDocument(),
@@ -84,10 +80,6 @@ class WelcomeSheet : BaseAdaptiveSheet<SheetWelcomeBinding>(), ChipsView.OnChipC
 						v, R.string.operation_not_supported, Snackbar.LENGTH_SHORT,
 					).show()
 				}
-			}
-
-			R.id.chip_sync -> {
-				syncController.addAccount(requireActivity()) {}
 			}
 
             R.id.chip_directories -> {

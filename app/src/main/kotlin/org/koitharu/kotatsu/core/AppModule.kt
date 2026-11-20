@@ -66,7 +66,6 @@ import org.koitharu.kotatsu.main.ui.protect.AppProtectHelper
 import org.koitharu.kotatsu.main.ui.protect.ScreenshotPolicyHelper
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.search.ui.MangaSuggestionsProvider
-import org.koitharu.kotatsu.sync.domain.SyncController
 import org.koitharu.kotatsu.widget.WidgetUpdater
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -165,12 +164,10 @@ interface AppModule {
 			widgetUpdater: WidgetUpdater,
 			appShortcutManager: AppShortcutManager,
 			backupObserver: BackupObserver,
-			syncController: SyncController,
 		): Set<@JvmSuppressWildcards InvalidationTracker.Observer> = arraySetOf(
 			widgetUpdater,
 			appShortcutManager,
 			backupObserver,
-			syncController,
 		)
 
 		@Provides

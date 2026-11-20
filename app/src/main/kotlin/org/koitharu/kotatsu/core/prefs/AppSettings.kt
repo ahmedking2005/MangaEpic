@@ -224,13 +224,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val trackerFrequencyFactor: Float
 		get() = prefs.getString(KEY_TRACKER_FREQUENCY, null)?.toFloatOrNull() ?: 1f
 
-	/**
-	 * How often to run a background sync, in hours, or `0` to only sync when local data changes.
-	 * Applied by SyncController.updateSyncSchedule.
-	 */
-	val syncPeriodHours: Int
-		get() = prefs.getString(KEY_SYNC_PERIOD, null)?.toIntOrNull() ?: SYNC_PERIOD_DEFAULT
-
 	val isTrackerNotificationsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_TRACKER_NOTIFICATIONS, true)
 
@@ -1007,7 +1000,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_TRACKER_ENABLED = "tracker_enabled"
 		const val KEY_TRACKER_WIFI_ONLY = "tracker_wifi"
 		const val KEY_TRACKER_FREQUENCY = "tracker_freq"
-		const val KEY_SYNC_PERIOD = "sync_period"
 		const val KEY_TRACK_SOURCES = "track_sources"
 		const val KEY_TRACK_CATEGORIES = "track_categories"
 		const val KEY_TRACK_WARNING = "track_warning"
@@ -1201,11 +1193,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_CLEAR_MANGA_DATA = "manga_data_clear"
 		const val KEY_STORAGE_USAGE = "storage_usage"
 		const val KEY_WEBVIEW_CLEAR = "webview_clear"
-
-		/** Sync period options offered in settings, in hours. `0` means "only when local data changes". */
-		@JvmField
-		val SYNC_PERIODS = intArrayOf(0, 1, 6, 12, 24)
-		const val SYNC_PERIOD_DEFAULT = 6
 
 		// old keys are for migration only
 		private const val KEY_IMAGES_PROXY_OLD = "images_proxy"

@@ -163,7 +163,6 @@ class SettingsActivity :
 			Intent.ACTION_VIEW -> {
 				when (intent.data?.host) {
 					HOST_ABOUT -> AboutSettingsFragment()
-					HOST_SYNC_SETTINGS -> SyncSettingsFragment()
 					else -> null
 				}
 			}
@@ -185,7 +184,6 @@ class SettingsActivity :
 
 	companion object {
 		private const val HOST_ABOUT = "about"
-		private const val HOST_SYNC_SETTINGS = "sync-settings"
 		const val ARG_PREF_KEY = "pref_key"
 	}
 }

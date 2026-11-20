@@ -31,14 +31,12 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.levenshteinDistance
 import org.koitharu.kotatsu.search.domain.SearchKind
-import org.koitharu.kotatsu.sync.domain.SyncController
 import javax.inject.Inject
 
 @Reusable
 class FavouritesRepository @Inject constructor(
 	private val db: MangaDatabase,
 	private val localObserver: LocalFavoritesObserver,
-	private val syncController: SyncController,
 ) {
 
 	suspend fun getAllManga(): List<Manga> {
@@ -359,8 +357,9 @@ class FavouritesRepository @Inject constructor(
 		}
 	}
 
-	/** Asks the system, so not on the main thread. */
-	private suspend fun getSyncedUntil(): Long = withContext(Dispatchers.Default) {
-		syncController.getFavouritesSyncedUntil()
-	}
+	/**
+	 * The upstream sync stack is removed, so a removal can never have reached a sync server:
+	 * the recover horizon is always 0 — exactly what the old controller returned with no account.
+	 */
+	private fun getSyncedUntil(): Long = 0L
 }

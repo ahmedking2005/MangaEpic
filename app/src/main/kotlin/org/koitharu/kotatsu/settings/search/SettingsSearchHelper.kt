@@ -23,7 +23,6 @@ import org.koitharu.kotatsu.settings.PrivacySettingsFragment
 import org.koitharu.kotatsu.settings.ProxySettingsFragment
 import org.koitharu.kotatsu.settings.ReaderSettingsFragment
 import org.koitharu.kotatsu.settings.SuggestionsSettingsFragment
-import org.koitharu.kotatsu.settings.SyncSettingsFragment
 import org.koitharu.kotatsu.settings.about.AboutSettingsFragment
 import org.koitharu.kotatsu.settings.discord.DiscordSettingsFragment
 import org.koitharu.kotatsu.settings.sources.SourcesSettingsFragment
@@ -58,7 +57,6 @@ class SettingsSearchHelper @Inject constructor(
         preferenceManager.inflateTo(result, R.xml.pref_backups, emptyList(), BackupsSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_backup_periodic, backups, PeriodicalBackupSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_accounts, emptyList(), AccountsSettingsFragment::class.java)
-        preferenceManager.inflateTo(result, R.xml.pref_sync, accounts, SyncSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_community, accounts, CommunitySettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_discord, accounts, DiscordSettingsFragment::class.java)
         preferenceManager.inflateTo(result, R.xml.pref_notifications, emptyList(), NotificationsSettingsFragment::class.java)
