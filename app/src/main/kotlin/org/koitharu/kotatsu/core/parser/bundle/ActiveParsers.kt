@@ -98,6 +98,13 @@ private val REMOVED_SOURCES = setOf(
  * starzmanga.net — the old manga-starz.net host answers every request with a
  * 301 to it, so the configured domain drops a permanent redirect hop from
  * every list, details and chapter request.
+ *
+ * Sources (2026-11-20): MangaLek now uses its canonical domain mangalik.net —
+ * lekmanga.net 301-redirects to it (and intermittently answers with a
+ * Cloudflare challenge instead). The parser also declares postReq: the site
+ * renders no chapter list into its details pages, chapters load only through
+ * the admin-ajax manga_get_chapters call, and the default /ajax/chapters/
+ * path returned the details page itself, leaving every title chapterless.
  */
 
 object ActiveParsers {
