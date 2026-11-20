@@ -84,12 +84,32 @@ class MangaListMapper @Inject constructor(
 		isNew = logItem.isNew,
 	)
 
-	fun mapTags(tags: Collection<MangaTag>) = tags.map {
+	fun mapTags(tags: Collection<MangaTag>) = mergeTags(tags).map {
 		ChipsView.ChipModel(
 			tint = getTagTint(it),
 			title = it.title,
 			data = it,
 		)
+	}
+
+	/**
+	 * One tag per genre: sources that list genres bilingually (English and
+	 * Arabic rows) merge into a single entry, preferring the source's own
+	 * Arabic-titled tag; an English-only known genre is shown under its
+	 * Arabic name. The kept tag's key/source are unchanged, so tapping the
+	 * chip still browses by the original tag.
+	 */
+	private fun mergeTags(tags: Collection<MangaTag>): List<MangaTag> {
+		val merged = LinkedHashMap<String, MangaTag>()
+		for (tag in tags) {
+			val key = GenreAliases.canonicalKey(tag)
+			val kept = merged[key]
+			when {
+				kept == null -> merged[key] = GenreAliases.localized(tag)
+				GenreAliases.isArabic(tag.title) && !GenreAliases.isArabic(kept.title) -> merged[key] = tag
+			}
+		}
+		return merged.values.toList()
 	}
 
 	private suspend fun toCompactListModel(
@@ -99,7 +119,7 @@ class MangaListMapper @Inject constructor(
 	) = MangaCompactListModel(
 		manga = manga,
 		override = override,
-		subtitle = manga.tags.joinToString(", ") { it.title },
+		subtitle = mergeTags(manga.tags).joinToString(", ") { it.title },
 		counter = getCounter(manga.id, options),
 	)
 
