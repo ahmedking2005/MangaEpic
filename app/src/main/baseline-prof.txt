@@ -43,9 +43,9 @@ Lorg/koitharu/kotatsu/list/ui/MangaListFragment;
 Lorg/koitharu/kotatsu/list/ui/MangaListViewModel;
 HLorg/koitharu/kotatsu/list/ui/adapter/MangaListAdapter;-><init>(Lorg/koitharu/kotatsu/list/ui/adapter/MangaListListener;Lorg/koitharu/kotatsu/list/ui/size/ItemSizeResolver;Z)V
 Lorg/koitharu/kotatsu/list/ui/ListModelDiffCallback;
-HLorg/koitharu/kotatsu/list/ui/adapter/MangaGridItemADKt;
-HLorg/koitharu/kotatsu/list/ui/adapter/MangaListItemADKt;
-HLorg/koitharu/kotatsu/list/ui/adapter/MangaListDetailedItemADKt;
+Lorg/koitharu/kotatsu/list/ui/adapter/MangaGridItemADKt;
+Lorg/koitharu/kotatsu/list/ui/adapter/MangaListItemADKt;
+Lorg/koitharu/kotatsu/list/ui/adapter/MangaListDetailedItemADKt;
 Lorg/koitharu/kotatsu/list/ui/model/ListModel;
 Lorg/koitharu/kotatsu/list/ui/model/MangaGridModel;
 Lorg/koitharu/kotatsu/list/ui/model/MangaListModel;
