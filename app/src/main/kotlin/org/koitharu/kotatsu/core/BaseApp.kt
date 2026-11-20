@@ -90,10 +90,17 @@ open class BaseApp : Application(), Configuration.Provider {
 			return
 		}
 		// Manga Epic: Firebase Remote Config (in-app defaults + background fetch) and the FCM token.
-		RemoteConfigManager.init()
-		FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-			if (task.isSuccessful) {
-				settings.fcmToken = task.result
+		// Deferred off the onCreate critical path (perf, cycle 1): RemoteConfig's getInstance +
+		// defaults parsing cost real startup time, while every consumer tolerates the async
+		// window — defaults are applied on first read, the fetch is a background fetch by
+		// design, and MainActivity's gates re-check on the refresh callback. The FCM token
+		// listener is asynchronous already; it simply moves with the block.
+		processLifecycleScope.launch {
+			RemoteConfigManager.init()
+			FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+				if (task.isSuccessful) {
+					settings.fcmToken = task.result
+				}
 			}
 		}
 		// Before anything gets to ask which sources there are: the answer is in the parsers kept from the last run
