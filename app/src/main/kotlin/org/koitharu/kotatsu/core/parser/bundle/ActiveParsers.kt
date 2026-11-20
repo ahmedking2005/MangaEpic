@@ -93,6 +93,11 @@ private val REMOVED_SOURCES = setOf(
  * no matter what the parsers themselves returned. Both are now delegated like
  * every other site call. This was the common-path cause behind the on-device
  * verdict that novels and anime did not play while lists and details worked.
+ *
+ * Sources (2026-11-20): MangaStarz now uses its canonical domain
+ * starzmanga.net — the old manga-starz.net host answers every request with a
+ * 301 to it, so the configured domain drops a permanent redirect hop from
+ * every list, details and chapter request.
  */
 
 object ActiveParsers {
