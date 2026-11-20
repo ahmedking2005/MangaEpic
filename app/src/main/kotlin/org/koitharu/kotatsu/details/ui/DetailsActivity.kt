@@ -456,7 +456,12 @@ class DetailsActivity :
 			textViewSubtitle.textAndVisible = null
 			textViewNsfw16.isVisible = manga.contentRating == ContentRating.SUGGESTIVE
 			textViewNsfw18.isVisible = manga.contentRating == ContentRating.ADULT
-			textViewDescription.text = details.description.ifNullOrEmpty { getString(R.string.no_description) }
+			// Manga Epic: claim "no description" only once the details are fully
+			// loaded; the seed emission (isLoaded = false) has no description yet,
+			// so leave the view blank instead of flashing the fallback text.
+			textViewDescription.text = details.description.ifNullOrEmpty {
+				if (details.isLoaded) getString(R.string.no_description) else ""
+			}
 		}
 		with(infoBinding) {
 			val translation = details.getLocale()

@@ -72,7 +72,7 @@ object AdMobManager {
 					}
 					consentResolutionFinished = true
 					if (consentInformation.canRequestAds()) {
-						initializeMobileAds(activity.applicationContext)
+						initializeMobileAds(activity)
 					} else {
 						resolveSdkReadyCallbacks(isReady = false)
 					}
@@ -82,7 +82,7 @@ object AdMobManager {
 				Log.w(TAG, "Consent information update failed: ${requestError.message}")
 				consentResolutionFinished = true
 				if (consentInformation.canRequestAds()) {
-					initializeMobileAds(activity.applicationContext)
+					initializeMobileAds(activity)
 				} else {
 					resolveSdkReadyCallbacks(isReady = false)
 				}
@@ -92,7 +92,7 @@ object AdMobManager {
 		// Returning users may already have a valid consent state. This avoids delaying
 		// the first ad request while the latest consent information is refreshed.
 		if (consentInformation.canRequestAds()) {
-			initializeMobileAds(activity.applicationContext)
+			initializeMobileAds(activity)
 		}
 	}
 
@@ -107,7 +107,7 @@ object AdMobManager {
 	fun showPrivacyOptions(activity: Activity, onFinished: (String?) -> Unit) {
 		UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError ->
 			if (UserMessagingPlatform.getConsentInformation(activity).canRequestAds()) {
-				initializeMobileAds(activity.applicationContext)
+				initializeMobileAds(activity)
 			}
 			onFinished(formError?.message)
 		}
@@ -168,7 +168,7 @@ object AdMobManager {
 		if (now - lastShownAt < CHAPTER_BREAK_MIN_INTERVAL_MS) return
 		val ad = animeInterstitial
 		if (ad == null) {
-			preloadAnimeInterstitial(activity.applicationContext)
+			preloadAnimeInterstitial(activity)
 			return
 		}
 		animeInterstitial = null
@@ -178,19 +178,19 @@ object AdMobManager {
 			.apply()
 		ad.fullScreenContentCallback = object : FullScreenContentCallback() {
 			override fun onAdDismissedFullScreenContent() {
-				preloadAnimeInterstitial(activity.applicationContext)
+				preloadAnimeInterstitial(activity)
 			}
 
 			override fun onAdFailedToShowFullScreenContent(error: AdError) {
 				Log.w(TAG, "Chapter-break interstitial failed to show: ${error.message}")
-				preloadAnimeInterstitial(activity.applicationContext)
+				preloadAnimeInterstitial(activity)
 			}
 		}
 		runCatching {
 			ad.show(activity)
 		}.onFailure {
 			Log.w(TAG, "Chapter-break interstitial could not be shown", it)
-			preloadAnimeInterstitial(activity.applicationContext)
+			preloadAnimeInterstitial(activity)
 		}
 	}
 
@@ -223,6 +223,10 @@ object AdMobManager {
 
 	@MainThread
 	private fun preloadAnimeInterstitial(context: Context) {
+		// Mediation (Unity Ads): the Unity adapter refuses loads made with a
+		// non-Activity context (adapter error 105), so callers that have an
+		// Activity (initialize / chapter-break offer) pass it in. Other networks
+		// accept either context, so their behaviour is unchanged.
 		if (!sdkInitialized || animeInterstitial != null || isAnimeInterstitialLoading) return
 		isAnimeInterstitialLoading = true
 		InterstitialAd.load(

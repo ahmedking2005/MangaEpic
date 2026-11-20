@@ -54,7 +54,11 @@ android {
 
     defaultConfig {
 		applicationId 'com.mangaepic.app'
-		minSdk = 23
+		// MEDIATION CHANGE: minSdk 23 -> 24. All three AdMob mediation adapters declare
+		// minSdk 24 (Mintegral 17.2.21.0, InMobi 11.5.1.0; Unity guide prerequisites:
+		// "Android API level 24 or later"); the manifest merger fails the release build
+		// while the app is at 23. API 24 = Android 7.0 (2016).
+		minSdk = 24
 		targetSdk = 37
 		versionCode = 2049
         versionName = '9.8.7'
@@ -323,6 +327,17 @@ dependencies {
 	implementation libs.media3.ui
 	implementation libs.play.services.ads
 	implementation libs.user.messaging.platform
+	// Manga Epic mediation (bidding): Google versioned adapters. Mintegral also needs
+	// its Maven repo (see settings.gradle). AdMob delivers mediation config from the
+	// console mapping; GDPR consent reaches the SDKs automatically via the UMP TCF
+	// string (Mintegral adapter >= 17.1.61.1, InMobi adapter >= 10.7.5.0, Unity
+	// adapter >= 4.19.0.1). Network IDs live in MediationIds.kt for reference.
+	// Unity caveat: its adapter needs an Activity context for loads — see Flag 4 in
+	// stage-mediation/INTEGRATION_CHECKLIST.md (chapter-break interstitial preload).
+	implementation libs.mediation.mintegral
+	implementation libs.mediation.inmobi
+	implementation libs.mediation.unity
+	implementation libs.unity.ads
 	implementation libs.androidx.browser
 
 	implementation libs.conscrypt.android

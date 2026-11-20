@@ -25,8 +25,12 @@ firebaseBom = "34.4.0"
 playServicesAuth = "21.4.0"
 browser = "1.8.0"
 media3 = "1.10.1"
-playServicesAds = "25.4.0"
+playServicesAds = "25.5.0" # bumped 25.4.0 -> 25.5.0: the version both mediation adapters below were built/tested against (Google mediation guides)
 userMessagingPlatform = "4.0.0"
+mediationMintegral = "17.2.21.0" # com.google.ads.mediation:mintegral (Mintegral SDK 17.2.21)
+mediationInmobi = "11.5.1.0" # com.google.ads.mediation:inmobi (InMobi SDK 11.5.1)
+mediationUnity = "4.21.0.0" # com.google.ads.mediation:unity (Unity adapter; does NOT bundle the SDK)
+unityAds = "4.21.0" # com.unity3d.ads:unity-ads — separate dependency, the Unity guide lists both lines
 googleServices = "4.4.2"
 firebaseCrashlyticsPlugin = "3.0.3"
 guava = "33.4.8-android"
@@ -92,6 +96,10 @@ media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", versio
 media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3" }
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "userMessagingPlatform" }
+mediation-mintegral = { group = "com.google.ads.mediation", name = "mintegral", version.ref = "mediationMintegral" }
+mediation-inmobi = { group = "com.google.ads.mediation", name = "inmobi", version.ref = "mediationInmobi" }
+mediation-unity = { group = "com.google.ads.mediation", name = "unity", version.ref = "mediationUnity" }
+unity-ads = { group = "com.unity3d.ads", name = "unity-ads", version.ref = "unityAds" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hilt" }
