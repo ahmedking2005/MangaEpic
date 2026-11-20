@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.almostEquals
 import org.koitharu.kotatsu.sourcescore.data.SimilarWorkDto
+import java.text.Normalizer
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -50,6 +51,7 @@ class RankedList(val manga: List<Manga>, val weight: Double)
 object DiscoverRanking {
 
 	private const val RANK_DAMPING = 30.0
+	private val COMBINING_MARKS = Regex("\\p{Mn}")
 
 	/**
 	 * How far their taste can move a title within a list, and how far what the community is rating can.
@@ -149,18 +151,72 @@ object DiscoverRanking {
 
 	/** The same work on two sources is one entry, whatever punctuation each gives its title. */
 	fun titleKey(title: String): String {
+		// Sources spell the same title differently: Arabic alef/yaa/taa-marbuta forms,
+		// tatweel and vowel marks, Latin accents, case and punctuation. Fold all of
+		// that away before keying, or the same work keys differently per source.
+		val normalized = normalizeTitle(title)
 		// Run over a whole library at once, and nearly every title is plain ASCII
-		val key = CharArray(title.length)
+		val key = CharArray(normalized.length)
 		var size = 0
-		for (char in title) {
+		for (char in normalized) {
 			when {
 				char in 'a'..'z' || char in '0'..'9' -> key[size++] = char
 				char in 'A'..'Z' -> key[size++] = char + ('a' - 'A')
 				char.code < 128 -> Unit
-				else -> return title.lowercase().filter { it.isLetterOrDigit() }
+				else -> return normalized.lowercase().filter { it.isLetterOrDigit() }
 			}
 		}
 		return String(key, 0, size)
+	}
+
+	private fun normalizeTitle(title: String): String {
+		val folded = StringBuilder(title.length)
+		for (char in title) {
+			when (char) {
+				'ـ' -> Unit // tatweel: elongation only, never part of a title's identity
+				'أ', 'إ', 'آ', 'ٱ' -> folded.append('ا')
+				'ى', 'ئ' -> folded.append('ي')
+				'ة' -> folded.append('ه')
+				'ؤ' -> folded.append('و')
+				else -> folded.append(char)
+			}
+		}
+		// NFD splits accented Latin letters into a base letter + combining marks; drop the marks.
+		return Normalizer.normalize(folded.toString(), Normalizer.Form.NFD)
+			.replace(COMBINING_MARKS, "")
+	}
+
+	/**
+	 * The key a work belongs under in a merged list. A work often carries its
+	 * other-language title among its alt titles, so any of those spellings —
+	 * its own or one already registered by an earlier copy — identifies the
+	 * same entry. Registers all of the work's spellings under the key.
+	 */
+	private fun canonicalKey(manga: Manga, aliases: MutableMap<String, String>): String {
+		val ownKey = titleKey(manga.title)
+		val key = aliases[ownKey]
+			?: manga.altTitles.firstNotNullOfOrNull { aliases[titleKey(it)] }
+			?: ownKey
+		aliases[ownKey] = key
+		manga.altTitles.forEach { aliases[titleKey(it)] = key }
+		return key
+	}
+
+	/**
+	 * One entry per work in a plain list, using the same canonical/alias merge
+	 * as [fuse]: the fullest copy (most chapters) wins, ties keep the earliest.
+	 */
+	fun mergeDuplicates(list: List<Manga>): List<Manga> {
+		val entries = LinkedHashMap<String, Manga>()
+		val aliases = HashMap<String, String>()
+		for (manga in list) {
+			val key = canonicalKey(manga, aliases)
+			val kept = entries[key]
+			if (kept == null || (manga.chapters?.size ?: 0) > (kept.chapters?.size ?: 0)) {
+				entries[key] = manga
+			}
+		}
+		return entries.values.toList()
 	}
 
 	/**
@@ -173,17 +229,23 @@ object DiscoverRanking {
 		taste: Map<String, Double> = emptyMap(),
 		chart: Map<String, Int> = emptyMap(),
 	): List<Manga> {
-		class Entry(val manga: Manga, var score: Double)
+		class Entry(var manga: Manga, var score: Double)
 
 		val entries = LinkedHashMap<String, Entry>()
+		val aliases = HashMap<String, String>()
 		val adult = HashSet<String>()
 		// Heaviest first, so a merged entry opens on the source that answered the question most exactly
 		for (list in lists.sortedByDescending { it.weight }) {
 			list.manga.forEachIndexed { rank, manga ->
-				val key = titleKey(manga.title)
+				val key = canonicalKey(manga, aliases)
 				// One site listing no tags for it says nothing, while another saying it is adult settles it
 				if (isAdult(manga)) adult += key
 				val entry = entries.getOrPut(key) { Entry(manga, 0.0) }
+				// A later copy with more chapters is the fuller one and takes over
+				// the entry; on a tie the heavier list's copy (already here) stays.
+				if ((manga.chapters?.size ?: 0) > (entry.manga.chapters?.size ?: 0)) {
+					entry.manga = manga
+				}
 				entry.score += list.weight / (RANK_DAMPING + rank)
 			}
 		}
@@ -310,13 +372,26 @@ object DiscoverRanking {
 
 		val seen = HashSet(known)
 		// As in fuse: whichever site happens to be listed first must not decide whether it is adult
-		candidates.forEach { list -> list.forEach { if (isAdult(it)) seen += titleKey(it.title) } }
+		candidates.forEach { list ->
+			list.forEach {
+				if (isAdult(it)) {
+					seen += titleKey(it.title)
+					it.altTitles.forEach { alt -> seen += titleKey(alt) }
+				}
+			}
+		}
 		val all = candidates.flatMapIndexed { source, list ->
 			list.mapIndexedNotNull { rank, manga ->
-				if (seen.add(titleKey(manga.title)) && !isKnown(manga, known)) {
-					Candidate(manga, source, rank, affinity(manga, taste))
-				} else {
+				// Any of the work's spellings (title or alt titles) already seen
+				// means this copy is a duplicate of an earlier one.
+				val keys = ArrayList<String>(1 + manga.altTitles.size)
+				keys += titleKey(manga.title)
+				manga.altTitles.mapTo(keys) { titleKey(it) }
+				if (keys.any { it in seen } || isKnown(manga, known)) {
 					null
+				} else {
+					seen.addAll(keys)
+					Candidate(manga, source, rank, affinity(manga, taste))
 				}
 			}
 		}
