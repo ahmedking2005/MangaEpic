@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -319,12 +320,20 @@ internal class Cenele(context: MangaLoaderContext) :
 
 		val doc = webClient.httpGet(cleanUrl).parseHtml()
 		val locator = parseCeneleChapterLocator(chapter.url)
-		val content = locator?.let {
-			loadChapterViaAjax(doc, cleanUrl, it)
-		} ?: findDirectChapterContent(doc, locator)
-		?: return null
 
-		sanitizeChapterContent(content)
+		// The site now serves chapter prose inside a <story-fold> element: the
+		// theme adds the text-left class the old selectors waited for only via
+		// JavaScript, so they could never match the static HTML, and the old
+		// load_chapter/load_nonce AJAX action is gone. Take the fold from the
+		// chapter page itself first, then the site's current AJAX transport,
+		// whose action/field names are hash-suffixed and must be read from the
+		// page's own published config — never hardcoded. A chapter whose fold
+		// is only the promo shell on both routes is the site's "no content"
+		// answer (e.g. announcement chapters): report it as a parse failure
+		// instead of returning the shell or null.
+		val content = extractStoryFoldContent(doc, locator)
+			?: locator?.let { loadChapterViaTransport(doc, cleanUrl, it) }
+			?: throw ParseException("Cenele: chapter content not found", cleanUrl)
 
 		// عنوان الفصل
 		val title = doc.selectFirst("h3.chapter-name")?.text()?.trim()
@@ -350,23 +359,35 @@ internal class Cenele(context: MangaLoaderContext) :
 		)
 	}
 
-	private suspend fun loadChapterViaAjax(
+	private fun extractStoryFoldContent(
+		doc: Document,
+		locator: CeneleChapterLocator?,
+	): Element? {
+		val fold = if (locator != null) {
+			doc.selectFirst("#chapter-${locator.chapterId} story-fold")
+				?: doc.selectFirst(".reading-content.current story-fold")
+		} else {
+			doc.selectFirst(".reading-content.current story-fold")
+		} ?: doc.selectFirst("story-fold")
+		?: return null
+		sanitizeChapterContent(fold)
+		return fold.takeIf { it.text().trim().length >= MIN_PROSE_TEXT_LENGTH }
+	}
+
+	private suspend fun loadChapterViaTransport(
 		doc: Document,
 		referer: String,
 		locator: CeneleChapterLocator,
 	): Element? {
-		val scripts = doc.select("script").joinToString("\n") { it.data() }
-		val nonce = LOAD_NONCE.find(scripts)?.groupValues?.getOrNull(1)
-			?.takeIf(String::isNotBlank)
-			?: return null
+		val transport = parseNovelhubTransport(doc) ?: return null
 		return runCatching {
-			webClient.httpPost(
+			val response = webClient.httpPost(
 				"https://$domain/wp-admin/admin-ajax.php".toHttpUrl(),
 				mapOf(
-					"action" to "load_chapter",
-					"manga_id" to locator.mangaId,
-					"chapter_id" to locator.chapterId,
-					"nonce" to nonce,
+					"action" to transport.action,
+					transport.mangaField to locator.mangaId,
+					transport.chapterField to locator.chapterId,
+					transport.nonceField to transport.nonce,
 				),
 				Headers.Builder()
 					.add("Accept", "text/html, */*;q=0.8")
@@ -374,24 +395,43 @@ internal class Cenele(context: MangaLoaderContext) :
 					.add("X-Requested-With", "XMLHttpRequest")
 					.add("User-Agent", config[userAgentKey])
 					.build(),
-			).parseHtml().selectFirst("div.text-left")
+			).parseHtml()
+			val fold = response.selectFirst("story-fold")
+				?: transport.wrapperClass?.let { response.selectFirst(".$it") }
+				?: return@runCatching null
+			sanitizeChapterContent(fold)
+			fold.takeIf { it.text().trim().length >= MIN_PROSE_TEXT_LENGTH }
 		}.getOrNull()
+	}
+
+	private fun parseNovelhubTransport(doc: Document): CeneleTransportConfig? {
+		val scripts = doc.select("script").joinToString("\n") { it.data() }
+		val start = scripts.indexOf(TRANSPORT_CONFIG_MARKER)
+		if (start < 0) return null
+		val blob = scripts.substring(start, minOf(scripts.length, start + TRANSPORT_CONFIG_WINDOW))
+		fun field(name: String): String? = Regex(""""$name"\s*:\s*"([^"]+)"""")
+			.find(blob)?.groupValues?.getOrNull(1)?.takeIf(String::isNotBlank)
+		return CeneleTransportConfig(
+			action = field("action") ?: return null,
+			mangaField = field("mangaField") ?: return null,
+			chapterField = field("chapterField") ?: return null,
+			nonceField = field("nonceField") ?: return null,
+			nonce = field("nonce") ?: return null,
+			wrapperClass = field("wrapperClass"),
+		)
 	}
 
 	internal companion object {
 
 		private val ZERO_WIDTH_MARKS = Regex("[\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]")
-		private val LOAD_NONCE = Regex("""["']load_nonce["']\s*:\s*["']([^"']+)""")
+		private const val TRANSPORT_CONFIG_MARKER = "madara_novelhub"
+		private const val TRANSPORT_CONFIG_WINDOW = 1000
 
-		internal fun findDirectChapterContent(
-			doc: Document,
-			locator: CeneleChapterLocator?,
-		): Element? {
-			if (locator != null) {
-				return doc.selectFirst("#chapter-${locator.chapterId} div.text-left")
-			}
-			return doc.selectFirst("div.reading-content.current div.text-left")
-		}
+		// A fold holding only the site's promo shell measures ~420 chars of
+		// text (verified live against an announcement chapter); real chapter
+		// prose measures in the tens of thousands. Anything below this is
+		// treated as "no content", never served as a chapter.
+		private const val MIN_PROSE_TEXT_LENGTH = 800
 
 		internal fun sanitizeChapterContent(content: Element): Element {
 			// Cenele injects the anti-copy span inside the same <p> as the real text.
@@ -474,6 +514,21 @@ internal class Cenele(context: MangaLoaderContext) :
 internal data class CeneleChapterLocator(
 	val mangaId: String,
 	val chapterId: String,
+)
+
+/**
+ * The site's current chapter-transport config, read at runtime from the
+ * `madara_novelhub` JSON blob embedded in the chapter page. The action and
+ * field names are hash-suffixed per deployment and rotate, so they are
+ * never hardcoded — only the stable key names are.
+ */
+internal data class CeneleTransportConfig(
+	val action: String,
+	val mangaField: String,
+	val chapterField: String,
+	val nonceField: String,
+	val nonce: String,
+	val wrapperClass: String?,
 )
 
 internal fun attachCeneleChapterLocator(

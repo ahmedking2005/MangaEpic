@@ -65,6 +65,14 @@ private val REMOVED_SOURCES = setOf(
  * Follow-up (2026-11-20): KolNovel's two ParseException throws now pass the chapter
  * URL as the constructor's required url argument, matching the tree-wide convention
  * (Azoramoon, Rewayat) and fixing the compile errors that stopped build 103.
+ *
+ * Own sources, part 3 (2026-11-20): Cenele's chapter content was rewritten in-house.
+ * The site moved its prose into a <story-fold> element (the text-left class the old
+ * selectors waited for is only added by JavaScript) and replaced the load_chapter
+ * AJAX action with a hash-suffixed transport whose config is published in the
+ * chapter page itself; the parser now extracts the fold from the page, falls back
+ * to that transport read at runtime, and throws a ParseException for genuinely
+ * empty chapters instead of returning null or the promo shell.
  */
 
 object ActiveParsers {
