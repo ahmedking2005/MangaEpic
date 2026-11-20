@@ -2,9 +2,13 @@
 
 ## Manga Epic (this fork)
 
-- **Sources:** exactly 24 working Arabic sources — 15 manga, 6 novels, 3 anime.
+- **Sources:** exactly 26 working Arabic sources — 17 manga, 6 novels, 3 anime.
   Non-Arabic and adult sources are fenced out of browsing, search, library,
   history, sync and external-link resolution.
+- **Sources added (2026-11-20):** MangaTek and AnyoneManga, ported from the
+  MangaPeak parsers tree. MangaMello Plus and DespairManga were evaluated and
+  excluded — the MangaMello Plus API no longer answers and the DespairManga
+  site no longer serves a reader.
 - **Accounts:** Supabase sign-in with Google or email/password, profile with
   cover photo and reading stats, cloud sync of favourites/progress/history,
   and Google Drive backup (appDataFolder, newest 3 kept).

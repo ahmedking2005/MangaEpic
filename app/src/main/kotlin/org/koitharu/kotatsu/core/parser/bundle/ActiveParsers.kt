@@ -35,6 +35,15 @@ private val REMOVED_SOURCES = setOf(
 	"MANGALINKNET", "MANGALEKO", "MANGALIONZ", "STELLARSABER", "ARAREASCANS",
 )
 
+/*
+ * Source-set expansion (owner decision, 2026-11-20): MangaTek and AnyoneManga were
+ * ported in from the MangaPeak parsers tree, taking the effective set to 26 working
+ * sources (17 manga + 6 novels + 3 anime). Two further candidates were evaluated and
+ * deliberately not added: MangaMello Plus (its API no longer answers) and
+ * DespairManga (its site no longer serves a reader). No fence change was needed:
+ * the new parsers pass the same locale/type/broken admission rules as the rest.
+ */
+
 object ActiveParsers {
 
 	/** What is waited for the parsers kept from the last run, by whoever needs the sources before they are loaded. */
