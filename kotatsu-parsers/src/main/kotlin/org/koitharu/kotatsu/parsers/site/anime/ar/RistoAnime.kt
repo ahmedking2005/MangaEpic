@@ -36,7 +36,7 @@ import java.util.EnumSet
 internal class RistoAnime(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.ANIME_RISTO, pageSize = PAGE_SIZE, searchPageSize = PAGE_SIZE) {
 
-	override val configKeyDomain = ConfigKey.Domain("ristoanime.me")
+	override val configKeyDomain = ConfigKey.Domain("ristoanime.cc")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,

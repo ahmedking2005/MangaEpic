@@ -48,6 +48,13 @@ private val REMOVED_SOURCES = setOf(
  * never reached the generated source set; it now uses the direct property form
  * like every other parser, and the 26-source set is confirmed in the built app.
  * Follow-up 2 (2026-11-20): AnyoneManga's catalogue helper moved out of its companion to a top-level function, because a companion member signature referencing the generated MangaParserSource type defers the class past KSP round-1 generation and drops it from the generated source set.
+ *
+ * Own sources, part 1 (2026-11-20): Rewayat's chapter-content resolution was rewritten
+ * in-house — the slug/number pair is now resolved tolerantly from any URL shape the
+ * parser emits (relative or stored absolute) and an unresolvable chapter throws a
+ * ParseException with the reason instead of returning null, which the app surfaced as
+ * "Novel content not supported". RistoAnime now points at ristoanime.cc, where its
+ * site lives today; it previously targeted the old ristoanime.me domain.
  */
 
 object ActiveParsers {

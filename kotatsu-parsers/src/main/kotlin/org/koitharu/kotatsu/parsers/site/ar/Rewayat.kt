@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -228,10 +229,7 @@ internal class Rewayat(context: MangaLoaderContext) :
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> = emptyList()
 
     override suspend fun getChapterContent(chapter: MangaChapter): NovelChapterContent? {
-        val parts = chapter.url.removePrefix("/novel/").split("/")
-        if (parts.size < 2) return null
-        val novelSlug = parts[0]
-        val number = parts[1]
+        val (novelSlug, number) = resolveChapterRef(chapter.url)
         val json = webClient.httpGet(
             "https://$apiDomain/api/chapters/$novelSlug/$number/",
         ).parseJson()
@@ -251,6 +249,34 @@ internal class Rewayat(context: MangaLoaderContext) :
             html = buildChapterHtml(title, paragraphs),
             images = emptyList(),
         )
+    }
+
+    /**
+     * Resolves the (novel slug, chapter number) pair for the chapters API from a chapter URL.
+     *
+     * This parser emits chapter URLs as "/novel/{slug}/{number}" (see fetchAllChapters), but a
+     * chapter can also reach the reader with a stored absolute URL
+     * ("https://rewayat.club/novel/{slug}/{number}", with or without a trailing slash) from
+     * favourites/history rows saved by earlier builds. Every such shape must round-trip, so the
+     * pair is taken from the segments after the "novel" segment rather than by stripping one
+     * exact prefix.
+     *
+     * A novel parser never returns null from getChapterContent: the app surfaces null as
+     * "Novel content not supported", which hides the real problem. A URL that genuinely carries
+     * no chapter number cannot be resolved to content, so it fails here with the reason instead.
+     */
+    private fun resolveChapterRef(rawUrl: String): Pair<String, String> {
+        val segments = rawUrl.substringBefore('?').substringBefore('#')
+            .split('/')
+            .filter { it.isNotEmpty() }
+        val novelIndex = segments.indexOf("novel")
+        val tail = if (novelIndex >= 0) segments.drop(novelIndex + 1) else segments
+        val slug = tail.getOrNull(0)
+        val number = tail.getOrNull(1)?.takeIf { it.toDoubleOrNull() != null }
+        if (slug == null || number == null) {
+            throw ParseException("Rewayat: no chapter number in chapter url", rawUrl)
+        }
+        return slug to number
     }
 
     private fun buildChapterHtml(title: String, paragraphs: List<String>): String {
